@@ -18,6 +18,20 @@ CHWMSGThread::~CHWMSGThread()
 
 LRESULT CHWMSGThread::DefThreadProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
+	switch (message)
+	{
+	case WM_QUIT:
+		{
+			ExitThread(0);
+			return 0;
+		}
+		break;
+	default:
+		{
+			return 0;
+		}
+		break;
+	}
 	return 0L;
 }
 LRESULT CHWMSGThread::_Proc( UINT message, WPARAM wParam, LPARAM lParam)
@@ -74,20 +88,45 @@ LRESULT CHWMSGThread::_ThreadProc()
 
 BOOL CHWMSGThread::Terminate()
 {				
+	HWTRACE(TEXT("CHWThread::Terminate Begin\n"));
 	if (m_hThread)
-	{		
-		//HWTRACE(TEXT("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXBegin Terminate\n"));		
-		PostMessage(WM_QUIT, 0, 0);				
-		if (WAIT_OBJECT_0 != WaitForSingleObject(m_hThread, 300))
+	{
+		DWORD dwExitCode; 
+		GetExitCodeThread( m_hThread, &dwExitCode ); 
+		if (STILL_ACTIVE == dwExitCode)
 		{
-			TerminateThread(m_hThread, 0);	
-			WaitForSingleObject(m_hThread, INFINITE);
-		}		
-		SAFE_CLOSE_HANDLE(m_hThread);	
-		//HWTRACE(TEXT("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXEnd Terminate\n"));
-	}			
-	//HWTRACE(TEXT(" CHWMSGThread::Terminate End............\n"));
-	return TRUE;
+			PostMessage(WM_QUIT, 0, 0);	
+			DWORD dwWait = WaitForSingleObject(m_hThread, 300);
+			switch (dwWait)
+			{
+			case WAIT_TIMEOUT:
+				{
+					SetLastError(0);
+					BOOL blValue = TerminateThread(m_hThread, 0);
+					HWTRACEEX(!blValue, TEXT("TerminateThread Failed %d\n"), GetLastError());
+					if (blValue)
+					{
+						WaitForSingleObject(m_hThread, INFINITE);		
+					}						
+				}
+				break;
+			case WAIT_FAILED:
+				{
+
+				}
+				break;
+			case WAIT_OBJECT_0:
+				{
+
+				}
+				break;
+			}				
+		}	
+		SAFE_CLOSE_HANDLE(m_hThread);		
+		m_dwThreadID = 0;
+	}	
+	HWTRACE(TEXT("CHWThread::Terminate End\n"));
+	return TRUE;	
 }
 
 BOOL CHWMSGThread::PostMessage( UINT message, WPARAM wParam, LPARAM lParam)
