@@ -24,11 +24,13 @@ public:
 	HWND GetSafeHwnd() const;
 	HWND GetDlgItem( UINT);
 protected:	
+	static BOOL CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
 	virtual LRESULT _DialogProc(HWND, UINT, WPARAM, LPARAM);
+	//////////////////////////////////////////////////////////////////////////
 	virtual LRESULT OnCommand(HWND, UINT, WPARAM, LPARAM);
 	virtual LRESULT OnInitDialog(HWND, UINT, WPARAM, LPARAM);	
 	virtual LRESULT OnDestroy(HWND, UINT, WPARAM, LPARAM);
-	static BOOL CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
+	virtual LRESULT OnSize(HWND, UINT, WPARAM, LPARAM);	
 	/*
 	virtual BOOL OnApply();
 		virtual void OnReset();

@@ -11,17 +11,17 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 
 #ifdef UNICODE
 
-#define LoadBitmapFromFile		LoadBitmapFromFileW
+#define LoadBitmapFromFile		HWLoadBitmapFromFileW
 
 #else 
 
-#define LoadBitmapFromFile		LoadBitmapFromFileA
+#define LoadBitmapFromFile		HWLoadBitmapFromFileA
 
 #endif
 
 
-HBITMAP WINAPI LoadBitmapFromFileW(LPCWSTR);	
-HBITMAP WINAPI LoadBitmapFromFileA(LPCSTR);
+HBITMAP WINAPI HWLoadBitmapFromFileW(LPCWSTR);	
+HBITMAP WINAPI HWLoadBitmapFromFileA(LPCSTR);
 
 
 #endif //HWX_BITMAP_H

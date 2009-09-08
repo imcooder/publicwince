@@ -72,7 +72,11 @@ LRESULT PropertySheetPage::_DialogProc(HWND hDlg, UINT  message, WPARAM  wParam,
 			return OnCommand(hDlg, message, wParam, lParam);
 		}
 		break;
-
+	case WM_SIZE:
+		{
+			return OnSize(hDlg, message, wParam, lParam);
+		}
+		break;
 	default:
 		{			
 			return 0;//DefWindowProc(hDlg, message, wParam, lParam);
@@ -133,4 +137,9 @@ HWND PropertySheetPage::GetDlgItem( UINT nID)
 		return ::GetDlgItem(GetSafeHwnd(), nID);
 	}
 	return NULL;
+}
+
+LRESULT PropertySheetPage::OnSize( HWND, UINT, WPARAM, LPARAM )
+{
+	return 0;
 }
