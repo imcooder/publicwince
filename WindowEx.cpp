@@ -63,3 +63,41 @@ BOOL WINAPI ScreenToClient( HWND hWnd, LPRECT pRect)
 	return TRUE;
 }
 
+
+BOOL WINAPI ModifyStyle(HWND hWnd, DWORD dwRemove, DWORD dwAdd, UINT nFlags)
+{	
+	if (!::IsWindow(hWnd))
+	{
+		return FALSE;
+	}
+	DWORD dwStyle = ::GetWindowLong(hWnd, GWL_STYLE);
+	DWORD dwNewStyle = (dwStyle & ~dwRemove) | dwAdd;
+	if (dwStyle != dwNewStyle)
+	{
+		::SetWindowLong(hWnd, GWL_STYLE, dwNewStyle);
+		if (nFlags != 0)
+		{
+			::SetWindowPos(hWnd, NULL, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | nFlags);
+		}
+	}	
+	return TRUE;
+}
+
+BOOL WINAPI ModifyStyleEx(HWND hWnd, DWORD dwRemove, DWORD dwAdd, UINT nFlags )
+{	
+	if (!::IsWindow(hWnd))
+	{
+		return FALSE;
+	}
+	DWORD dwStyle = ::GetWindowLong(hWnd, GWL_EXSTYLE);
+	DWORD dwNewStyle = (dwStyle & ~dwRemove) | dwAdd;
+	if (dwStyle != dwNewStyle)
+	{
+		::SetWindowLong(hWnd, GWL_EXSTYLE, dwNewStyle);
+		if (nFlags != 0)
+		{
+			::SetWindowPos(hWnd, NULL, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | nFlags);
+		}
+	}	
+	return TRUE;
+}

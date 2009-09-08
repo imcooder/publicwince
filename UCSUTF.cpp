@@ -58,67 +58,6 @@ int UCS4_To_UTF8( unsigned long dwCode, unsigned char* pUTF8Str )
 	return iLen;
 }
 
-/* 转换UTF8编码到UCS4编码 */
-int Conv_UTF8_To_UCS4( const unsigned char* pUTF8Str, unsigned long* pdwCode )
-{
-	int i, iLen;
-	unsigned char b;
-	unsigned long dwCode;
-
-	b = *pUTF8Str++;
-	if( b < 0x80 )
-	{
-		dwCode = b;
-		*pdwCode = dwCode;
-		return 1;
-	}
-
-	if( b < 0xC0 || b > 0xFD )return 0; /* 非法UTF8 */
-
-	if( b < 0xE0 )
-	{
-		dwCode = b & 0x1F;
-		iLen = 2;
-	}
-	else if( b < 0xF0 )
-	{
-		dwCode = b & 0x0F;
-		iLen = 3;
-	}
-	else if( b < 0xF8 )
-	{
-		dwCode = b & 7;
-		iLen = 4;
-	}
-	else if( b < 0xFC )
-	{
-		dwCode = b & 3;
-		iLen = 5;
-	}
-	else
-	{
-		dwCode = b & 1;
-		iLen = 6;
-	}
-
-	for( i = 1; i < iLen; i++ )
-	{
-		b = *pUTF8Str++;
-		if( b < 0x80 || b > 0xBF ) /* 非法UTF8 */
-			break;
-
-		dwCode = (dwCode << 6) + (b - 0x80);			
-	}
-
-	if( i < iLen )
-		return 0;
-	else
-	{
-		*pdwCode = dwCode;
-		return iLen;
-	}
-}
-
 LONG WINAPI UTF16ToUTF8(LPCWSTR pszUTF16, CHAR* pszUTF8)
 {		
 	if (!pszUTF16)

@@ -11,7 +11,7 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 	
 #endif
 
-HBITMAP WINAPI LoadBitmapFromFileW( LPCWSTR pszFile)
+HBITMAP WINAPI HWLoadBitmapFromFileW( LPCWSTR pszFile)
 {
 	HBITMAP hBitmap = NULL;
 	if (!pszFile)
@@ -32,7 +32,7 @@ HBITMAP WINAPI LoadBitmapFromFileW( LPCWSTR pszFile)
 }
 
 
-HBITMAP WINAPI LoadBitmapFromFileA( LPCSTR pszFile)
+HBITMAP WINAPI HWLoadBitmapFromFileA( LPCSTR pszFile)
 {
 	HBITMAP hBitmap = NULL;
 	if (!pszFile)
@@ -42,5 +42,5 @@ HBITMAP WINAPI LoadBitmapFromFileA( LPCSTR pszFile)
 	}
 	WCHAR szPath[MAX_PATH] = {0};
 	mbstowcs(szPath, pszFile, strlen(pszFile));
-	return LoadBitmapFromFileW(szPath);
+	return HWLoadBitmapFromFileW(szPath);
 }
