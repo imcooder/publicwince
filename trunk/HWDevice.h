@@ -11,6 +11,6 @@
 #include <windef.h>
 
 
-void WINAPI ForceBacklight(BOOL);
-void WINAPI LightBacklight();
+void WINAPI BacklightForce(BOOL);
+void WINAPI BacklightLight();
 #endif //HWX_HWDEVICE_H

@@ -8,7 +8,7 @@
 #include <pm.h>
 #endif
 
-void WINAPI ForceBacklight( BOOL blOpen)
+void WINAPI BacklightForce( BOOL blOpen)
 {
 #ifdef WINCE
 	if (blOpen)
@@ -22,7 +22,7 @@ void WINAPI ForceBacklight( BOOL blOpen)
 #endif
 }				
 
-void WINAPI LightBacklight()
+void WINAPI BacklightLight()
 {
 #ifdef WINCE
 	HKEY hKey = NULL;
