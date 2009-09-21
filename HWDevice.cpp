@@ -42,7 +42,10 @@ void WINAPI BacklightLight()
 		hEventWakeup = CreateEvent(NULL, FALSE, FALSE, szEventName);
 		if (hEventWakeup)
 		{
-			SetEvent(hEventWakeup);
+			for (UINT nIdx = 0; nIdx < 5; nIdx ++)
+			{
+				SetEvent(hEventWakeup);
+			}
 			CloseHandle(hEventWakeup);
 			hEventWakeup = NULL;
 		}
