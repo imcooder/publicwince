@@ -589,7 +589,7 @@ LONG WINAPI Helper_StrGetHexA(LPCSTR pszString)
 void WINAPI Helper_StrUpperW(LPWSTR pszString)
 {
 	assert(pszString);
-	if (pszString)
+	if (!pszString)
 	{
 		return;
 	}
@@ -617,11 +617,11 @@ void WINAPI Helper_StrUpperW(LPWSTR pszString)
 void WINAPI Helper_StrUpperA(LPSTR pszString)
 {
 	assert(pszString);
-	if (pszString)
+	if (!pszString)
 	{
 		return;
 	}
-	if (pszString[0])
+	if (!pszString[0])
 	{
 		return;
 	}
@@ -646,11 +646,11 @@ void WINAPI Helper_StrUpperA(LPSTR pszString)
 void WINAPI Helper_StrReverseW(LPWSTR pszString)
 {  
 	assert(pszString);
-	if (pszString)
+	if (!pszString)
 	{
 		return;
 	}
-	if (pszString[0])
+	if (!pszString[0])
 	{
 		return;
 	}
@@ -663,11 +663,11 @@ void WINAPI Helper_StrReverseW(LPWSTR pszString)
 void WINAPI Helper_StrReverseA(LPSTR pszString)
 {  
 	assert(pszString);
-	if (pszString)
+	if (!pszString)
 	{
 		return;
 	}
-	if (pszString[0])
+	if (!pszString[0])
 	{
 		return;
 	}
