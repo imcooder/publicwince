@@ -70,6 +70,15 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 #endif
 #endif
 
+#ifndef HWREMOTETRACE
+#if defined(HWDEBUG)
+#define HWREMOTETRACE		REMOTETRACE
+#else 
+#define HWREMOTETRACE		__noop
+#endif
+#endif
+
+
 #ifdef UNICODE
 #define XTrace		XTraceW
 #else 
@@ -79,13 +88,15 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 #ifdef UNICODE
 #define XTraceEx		XTraceExW
 #else 
-#define XTrace		XTraceExA
+#define XTrace			XTraceExA
 #endif
 
 #ifdef UNICODE
 #define FORCETRACE		XForceTraceW
+#define REMOTETRACE		HWRemoteTraceW
 #else 
 #define FORCETRACE		XForceTraceA
+#define REMOTETRACE		HWRemoteTraceA
 #endif
 
 
@@ -101,6 +112,7 @@ extern "C"
 	DLLXEXPORT void WINAPI		XTraceExA(BOOL, LPCSTR , ...);
 	DLLXEXPORT void WINAPI	  XForceTraceW(LPCWSTR, ...);	
 	DLLXEXPORT void WINAPI		XForceTraceA(LPCSTR , ...);
+	DLLXEXPORT void WINAPI		HWRemoteTraceW(LPCWSTR, ...);
 	DLLXEXPORT void WINAPI		DebugStringFileA(LPCSTR, LPCSTR);
 	DLLXEXPORT void WINAPI		DebugStringFileW(LPCWSTR, LPCWSTR);
 #ifdef __cplusplus
