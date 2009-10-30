@@ -34,7 +34,7 @@ void WINAPI		DebugStringW(LPCWSTR);
 void WINAPI		DebugStringA(LPCSTR);
 void WINAPI		DebugStringFileW(LPCWSTR, LPCWSTR);
 void WINAPI		DebugStringFileA(LPCSTR, LPCSTR);
-
+void WINAPI		DebugStringWindow(LPCWSTR);
 //////////////////////////////////////////////////////////////////////////
 #ifdef WINCE
 //	#pragma comment(lib, "Msgbox.lib")	
@@ -330,6 +330,7 @@ void WINAPI XForceTraceA(LPCSTR pchFormat, ...)
 }
 #endif
 
+
 #ifndef WINCE
 void WINAPI ForceMessageBoxA(LPCSTR pszMsg) 
 {
@@ -344,6 +345,33 @@ void WINAPI ForceMessageBoxW(LPCWSTR pszMsg)
 	GetModuleFileNameW(NULL, szTitle, MAX_PATH - 1);
 	MessageBoxW(GetActiveWindow(), pszMsg, szTitle, MB_OK);
 }
+
+void WINAPI HWRemoteTraceW( LPCWSTR pwhFormat, ... )
+{
+	WCHAR szBuffer[MAX_SIZE_M] = {0};
+	va_list argList;
+	va_start(argList, pwhFormat);		
+	StringCchVPrintfW(szBuffer, _countof(szBuffer) - 1, pwhFormat, argList); 
+	DebugStringWindow(szBuffer);		
+	va_end(argList);		
+}
+void WINAPI DebugStringWindow( LPCWSTR pszDebugInfo)
+{
+	if (!pszDebugInfo)
+	{
+		return;
+	}
+	HWND hMonitorWnd = FindWindowW(NULL, L"HWLOG");
+	if (hMonitorWnd)
+	{
+		COPYDATASTRUCT cpyData;
+		cpyData.cbData = (wcslen(pszDebugInfo)	+ 1) * sizeof(*pszDebugInfo);
+		cpyData.lpData = (void*)pszDebugInfo;
+		cpyData.dwData = 0x400;
+		SendMessage(hMonitorWnd, WM_COPYDATA, NULL, (LPARAM)&cpyData);
+	}
+}
+
 
 void WINAPI DebugStringW( LPCWSTR pszDebugInfo)
 {
@@ -654,3 +682,4 @@ _Error:
 
 	return blRet;
 }
+
