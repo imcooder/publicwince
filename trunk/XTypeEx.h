@@ -8,14 +8,16 @@
    ((HFONT) ::SelectObject((hDC), (HGDIOBJ) (HFONT) (hFont)))
 
 
+#ifndef HANDLE_MSG
 #define HANDLE_MSG(m_hWnd, message, fn) \
    case (message): \
       return HANDLE_##message((m_hWnd), (wParam), (lParam), (fn))
+#endif
 
-
+#ifndef HANDLE_WM_COMMAND
 #define HANDLE_WM_COMMAND(m_hWnd, wParam, lParam, fn) \
    ( (fn) ((m_hWnd), (int) (LOWORD(wParam)), (HWND)(lParam), (UINT) HIWORD(wParam)), 0L)
-
+#endif
 
 
 
