@@ -173,3 +173,24 @@ void WINAPI MovingBoarder(const RECT* pRect)
 	}	
 	return;
 }
+
+BOOL WINAPI DrawRectangles( HDC hDC, const LPRECT pRects, LONG nCount)
+{
+	if (!pRects || nCount < 1)
+	{
+		return FALSE;
+	}
+	for (LONG nIdx = 0; nIdx < nCount; nIdx ++)
+	{
+		POINT aPoints[5] = 
+		{
+			{(pRects + nIdx)->left, (pRects + nIdx)->top},			
+			{(pRects + nIdx)->right, (pRects + nIdx)->top},
+			{(pRects + nIdx)->right, (pRects + nIdx)->bottom},
+			{(pRects + nIdx)->left, (pRects + nIdx)->bottom},	
+			{(pRects + nIdx)->left, (pRects + nIdx)->top}		
+		};
+		Polyline(hDC, aPoints, 5);
+	}
+	return TRUE;
+}
