@@ -26,7 +26,7 @@ BOOL HWModule::LoadLibrary( LPCTSTR pszPath)
 	}
 	else
 	{		
-		HWTRACE(TEXT("LoadLibrary %s failed\n"), pszPath);
+		HWTRACE(TEXT("LoadLibrary %s failed %08X\n"), pszPath, GetLastError());
 	}	
 	return blReturn;
 }
