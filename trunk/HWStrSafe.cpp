@@ -11,6 +11,9 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 #include <String.h>
 #include <wchar.h>
 
+#ifndef _countof
+#define _countof(_Array) (sizeof(_Array) / sizeof(_Array[0]))
+#endif
 
 CHAR*		WINAPI StringTokenA( CHAR* pszToken, const CHAR* pszDelimit, CHAR ** pszContext)
 {
@@ -389,4 +392,70 @@ LONG WINAPI StringWCharToChar(LPCWSTR pszStr, LONG nLen, LPSTR pszString, LONG n
 LONG WINAPI StringCharToWChar(LPCSTR pszStr, LONG nLen, LPWSTR pszString, LONG nMaxLen)
 { 
 	return 	MultiByteToWideChar(CP_ACP, 0, pszStr, nLen,  pszString, nMaxLen);		
+}
+
+
+
+
+LONG WINAPI StringCchToGuidW(LPCWSTR pszString, LONG nCount, GUID* pGUID)
+{
+	if (!pszString || nCount < 0 || !pGUID)
+	{
+		return -1;
+	}
+	WCHAR szGUID[64] = {0};
+	StringCchCopyW(szGUID, _countof(szGUID), pszString);
+	StringTrimW(szGUID, L"{}");
+	swscanf(szGUID, TEXT("%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X"), &pGUID->Data1, &pGUID->Data2, &pGUID->Data3, &pGUID->Data4[0], &pGUID->Data4[1], &pGUID->Data4[2], &pGUID->Data4[3], &pGUID->Data4[4], &pGUID->Data4[5], &pGUID->Data4[6], &pGUID->Data4[7]);
+	return 0;	
+}
+LONG WINAPI StringCchToGuidA(LPCSTR pszString, LONG nCount, GUID* pGUID)
+{
+	WCHAR szGUID[64] = {0};
+	if (!pszString || nCount < 0 || !pGUID)
+	{
+		return -1;
+	}
+	StringCharToWChar(pszString, nCount, szGUID, _countof(szGUID));	
+	return StringCchToGuidW(szGUID, _countof(szGUID), pGUID);	
+}
+
+LONG WINAPI StringCchFromGuidW(const GUID* pGUID, LPWSTR pszString, LONG nCount)
+{
+	if (!pGUID)
+	{
+		return -1;
+	}
+	WCHAR szGUID[64] = {0};
+	HRESULT  hRes = StringCchPrintfW(szGUID, _countof(szGUID), TEXT("{%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}"), pGUID->Data1, pGUID->Data2, pGUID->Data3, pGUID->Data4[0], pGUID->Data4[1], pGUID->Data4[2], pGUID->Data4[3], pGUID->Data4[4], pGUID->Data4[5], pGUID->Data4[6], pGUID->Data4[7]);		
+	if (hRes != S_OK)
+	{	
+		return -1;
+	}
+	if (pszString && nCount > 0)
+	{
+		StringCchCopyW(pszString, nCount, szGUID);
+		return wcslen(pszString);
+	}
+	else if(!pszString && !nCount)
+	{
+		return wcslen(szGUID);
+	}
+	return -1;
+}
+
+
+LONG WINAPI StringCchFromGuidA(const GUID* pGUID, LPSTR pszString, LONG nCount)
+{
+	if (!pGUID)
+	{
+		return -1;
+	}
+	WCHAR szGUID[64] = {0};
+	LONG nRet = StringCchFromGuidW(pGUID, szGUID, _countof(szGUID));
+	if (!nRet && pszString && nCount > 0)
+	{
+		StringWCharToChar(szGUID, wcslen(szGUID), pszString, nCount);
+	}
+	return nRet;	
 }

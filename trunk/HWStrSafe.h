@@ -24,6 +24,9 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 #define StringUpper			StringUpperW
 #define StringLower			StringLowerW
 #define StringReverse		StringReverseW
+#define StringCchToGuid	StringCchToGuidW
+#define StringCchFromGuid	StringCchFromGuidW
+
 
 #else
 
@@ -37,6 +40,9 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 #define StringUpper			StringUpperA
 #define StringLower			StringLowerA
 #define StringReverse		StringReverseA
+#define StringCchToGuid	StringCchToGuidA
+#define StringCchFromGuid	StringCchFromGuidA
+
 #endif
 
 
@@ -67,7 +73,10 @@ extern "C"{
 	CHAR*		WINAPI StringReverseA(LPSTR pszString);
 	LONG		WINAPI StringWCharToChar(LPCWSTR pszStr, LONG nLen, LPSTR pszString, LONG nMaxLen);
 	LONG		WINAPI StringCharToWChar(LPCSTR pszStr, LONG nLen, LPWSTR pszString, LONG nMaxLen);
-
+	LONG		WINAPI StringCchToGuidW(LPCWSTR pszString, LONG nCount, GUID* pGUID);
+	LONG		WINAPI StringCchToGuidA(LPCSTR pszString, LONG nCount, GUID* pGUID);
+	LONG		WINAPI StringCchFromGuidW(const GUID* pGUID, LPWSTR pszString, LONG nCount);
+	LONG		WINAPI StringCchFromGuidA(const GUID* pGUID, LPSTR pszString, LONG nCount);
 #ifdef __cplusplus
 }
 #endif
