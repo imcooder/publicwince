@@ -4,7 +4,7 @@
 #include <assert.h>
 
 
-DWORD WINAPI HWXUE_RegQueryValueDWORD( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwData )
+DWORD WINAPI XUE_RegQueryValueDWORD( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwData )
 {
 	DWORD dwValue = dwData;
 	if (!hKey)
@@ -43,7 +43,7 @@ DWORD WINAPI HWXUE_RegQueryValueDWORD( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR psz
 	return dwValue;
 }
 
-BOOL WINAPI HWXUE_RegSetValueDWORD( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwData )
+BOOL WINAPI XUE_RegSetValueDWORD( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwData )
 {	
 	BOOL blRet = FALSE;
 	if (!hKey)
@@ -107,7 +107,7 @@ BOOL		WINAPI HWXUE_RegSetValueString( HKEY hKey , LPCTSTR pszSubKey, LPCTSTR psz
 	return blRet;
 }
 
-DWORD		WINAPI HWXUE_RegQueryValueString( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, LPCTSTR pszDefData, LPTSTR pszData, DWORD dwCount )
+DWORD		WINAPI XUE_RegQueryValueString( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, LPCTSTR pszDefData, LPTSTR pszData, DWORD dwCount )
 {	
 	//内部最多支持512个字符 否则不能读取真实的值
 	TCHAR szData[512] = {0};		
@@ -153,7 +153,7 @@ DWORD		WINAPI HWXUE_RegQueryValueString( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR p
 	return _tcslen(pszData);
 }
 
-BOOL		WINAPI HWXUE_RegSetValueBinary( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, const BYTE* pbData, DWORD dwByte )
+BOOL		WINAPI XUE_RegSetValueBinary( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, const BYTE* pbData, DWORD dwByte )
 {
 	BOOL blRet = FALSE;
 	if (!hKey || !pbData || dwByte <= 0)
@@ -184,7 +184,7 @@ BOOL		WINAPI HWXUE_RegSetValueBinary( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszV
 	return blRet;
 }
 
-DWORD		WINAPI HWXUE_RegQueryValueBinary( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, const BYTE* pbDefData, DWORD dwDefSize, BYTE* pbData, DWORD dwCount )
+DWORD		WINAPI XUE_RegQueryValueBinary( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, const BYTE* pbDefData, DWORD dwDefSize, BYTE* pbData, DWORD dwCount )
 {
 	//内部最多支持1024Byte 否则不能读取真实的值
 	BYTE abData[1024] = {0};	
@@ -236,7 +236,7 @@ DWORD		WINAPI HWXUE_RegQueryValueBinary( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR p
 	return dwRet;
 }
 
-BOOL		WINAPI HWXUE_RegDeleteValue( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue )
+BOOL		WINAPI XUE_RegDeleteValue( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue )
 {	
 	BOOL blRet = TRUE;
 	if (pszSubKey && _tcslen(pszSubKey))

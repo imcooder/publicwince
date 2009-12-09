@@ -14,12 +14,12 @@ purpose:	简单注册表访问函数, 接口简单 效率低下 不适合大量注册表访问
 
 #include "Ext_Type.h"
 
-DWORD		WINAPI HWXUE_RegQueryValueDWORD(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwDefData);
-BOOL		WINAPI HWXUE_RegSetValueDWORD(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwData);
+DWORD		WINAPI XUE_RegQueryValueDWORD(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwDefData);
+BOOL		WINAPI XUE_RegSetValueDWORD(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwData);
 BOOL		WINAPI HWXUE_RegSetValueString(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, LPCTSTR pszData);
-DWORD		WINAPI HWXUE_RegQueryValueString(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, LPCTSTR pszDefData, LPTSTR pszData, DWORD dwCount);
-BOOL		WINAPI HWXUE_RegSetValueBinary(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, const BYTE* pbData, DWORD dwByte);
-DWORD		WINAPI HWXUE_RegQueryValueBinary(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, const BYTE* pbDefData, DWORD dwDefSize, BYTE* pbData, DWORD dwCount);
-BOOL		WINAPI HWXUE_RegDeleteValue(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue);
+DWORD		WINAPI XUE_RegQueryValueString(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, LPCTSTR pszDefData, LPTSTR pszData, DWORD dwCount);
+BOOL		WINAPI XUE_RegSetValueBinary(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, const BYTE* pbData, DWORD dwByte);
+DWORD		WINAPI XUE_RegQueryValueBinary(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, const BYTE* pbDefData, DWORD dwDefSize, BYTE* pbData, DWORD dwCount);
+BOOL		WINAPI XUE_RegDeleteValue(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue);
 
 #endif//HWX_HWREGISTRY_H
