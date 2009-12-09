@@ -584,6 +584,24 @@ typedef struct tagCnd8
 #endif
 
 //////////////////////////////////////////////////////////////////////////
+//			DEFINE_POINTER(GpStatus (WINGDIPAPI *GdipCreateMatrixPtr)(GpMatrix **matrix));
+//			DEFINE_MEMBER(GdipCreateMatrix);	
+//			INITIALIZE_MEMBER(g_hGdiplusModule, GdipCreateMatrix);
+//			g_GdipCreateMatrix
+//////////////////////////////////////////////////////////////////////////
+#define DEFINE_POINTER(functptr)            typedef functptr
+#define DEFINE_MEMBER(name)                 __declspec(selectany) name## Ptr g_##name = NULL
 
+#ifdef _UNICODE
+#if defined(UNDER_CE)
+#define INITIALIZE_MEMBER(module, name)     g_##name = (name## Ptr) GetProcAddressW(module, L#name)
+#else
+#define INITIALIZE_MEMBER(module, name)     g_##name = (name## Ptr) GetProcAddress(module, #name)
+#endif // UNDER_CE
+#else
+#define INITIALIZE_MEMBER(module, name)     g_##name = (name## Ptr) GetProcAddress(module, #name)
+#endif // _UNICODE
+
+//////////////////////////////////////////////////////////////////////////
 #endif//HWXUE_EXT_TYPE_H_INC
 
