@@ -73,6 +73,11 @@ extern "C"{
 	DLLXEXPORT  BOOL    WINAPI    XRemoveFileA(LPCSTR );
 	DLLXEXPORT  BOOL    WINAPI    XDeleteDirectoryW(LPCWSTR , BOOL blDelAll);
 	DLLXEXPORT  BOOL    WINAPI    XDeleteDirectoryA(LPCSTR , BOOL blDelAll);
+
+
+
+	//
+	LONG WINAPI HWXUE_GetFileName(const TCHAR *pszFilePath, TCHAR *pszName, LONG nMax);
 /*
 #ifdef __cplusplus
 }

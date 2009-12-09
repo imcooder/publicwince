@@ -753,3 +753,35 @@ BOOL WINAPI XDeleteDirectoryA(LPCSTR pchDir, BOOL blDelAll)
 	return blReturn;
 }
 #endif
+
+
+
+LONG WINAPI HWXUE_GetFileName(const TCHAR *pszFilePath, TCHAR *pszName, LONG nMax)
+{
+	if (!pszFilePath)
+	{
+		return -1;
+	}
+	LPCTSTR pszHead = pszFilePath; 	
+	TCHAR szFileName[256]	= {0};
+
+	pszHead = _tcsrchr(pszFilePath, _T('\\'));  
+	if (pszHead)
+	{
+		StringCchCopy(szFileName, _countof(szFileName), pszHead + 1);
+	}
+	else
+	{
+		StringCchCopy(szFileName, _countof(szFileName), pszFilePath);
+	}
+	if (!pszName && !nMax)
+	{
+		return _tcslen(szFileName);
+	}
+	else if (pszName && nMax > 0)
+	{
+		StringCchCopy(pszName, nMax, szFileName);
+		return _tcslen(pszName);
+	}
+	return -1;
+}
