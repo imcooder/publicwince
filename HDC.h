@@ -24,5 +24,8 @@ BOOL WINAPI HDCDarker(HDC, const LPRECT, double, COLORREF crTransparent = RGB(0,
 BOOL WINAPI HDCGray(HDC, const LPRECT);
 void WINAPI MovingBoarder(const RECT*);
 BOOL WINAPI DrawRectangles(HDC, const LPRECT, LONG);
-void WINAPI DrawAntiAliasLine( HDC, int X0, int Y0, int X1, int Y1, COLORREF);
+
+void WINAPI XUE_DrawSolidLine(HDC hDC, int x0,int y0,int x1,int y1, LONG nWdith, DWORD dwColor);
+void WINAPI XUE_DrawAntiAliasLine( HDC, int X0, int Y0, int X1, int Y1, COLORREF);
+
 #endif //HWX_HDC_H

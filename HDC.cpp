@@ -196,7 +196,40 @@ BOOL WINAPI DrawRectangles( HDC hDC, const LPRECT pRects, LONG nCount)
 }
 
 
-void WINAPI DrawAntiAliasLine( HDC hDC, int X0, int Y0, int X1, int Y1, COLORREF clrLine)
+void WINAPI XUE_DrawSolidLine(HDC hDC, int x0,int y0,int x1,int y1, LONG nWdith, DWORD dwColor)
+{
+	HPEN	hNewPen = NULL,hOldPen = NULL;
+	POINT	pBuf[2];
+
+	// 定义新的画笔
+	hNewPen = ::CreatePen( PS_SOLID, nWdith, dwColor);// 创建新的画笔
+	if (hNewPen)
+	{
+		hOldPen = (HPEN)SelectObject( hDC, hNewPen );
+	}
+	// 采用新的画笔进行画线	
+	pBuf[0].x = x0;
+	pBuf[0].y = y0;
+	pBuf[1].x = x1;
+	pBuf[1].y = y1;
+	Polyline( hDC, pBuf, 2 );
+
+	// 恢复原来的画笔
+	if (hOldPen)
+	{
+		SelectObject(hDC, hOldPen );
+		hOldPen = NULL;
+	}
+	if (hNewPen)
+	{
+		DeleteObject( hNewPen );
+		hNewPen = NULL;
+	}
+	return;
+}
+
+
+void WINAPI XUE_DrawAntiAliasLine( HDC hDC, int X0, int Y0, int X1, int Y1, COLORREF clrLine)
 {
 	/* Make sure the line runs top to bottom */
 	if (Y0 > Y1)
