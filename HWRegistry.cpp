@@ -74,7 +74,7 @@ BOOL WINAPI XUE_RegSetValueDWORD( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue
 	return blRet;
 }
 
-BOOL		WINAPI HWXUE_RegSetValueString( HKEY hKey , LPCTSTR pszSubKey, LPCTSTR pszValue, LPCTSTR pszData )
+BOOL		WINAPI XUE_RegSetValueString( HKEY hKey , LPCTSTR pszSubKey, LPCTSTR pszValue, LPCTSTR pszData )
 {
 	BOOL blRet = FALSE;
 	if (!hKey || !pszData)
