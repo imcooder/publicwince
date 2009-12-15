@@ -182,12 +182,12 @@ typedef enum
 
 
 
-#ifndef ASSERT
-#define ASSERT(str)		_ASSERT(str)
+#ifndef _ASSERT
+#define _ASSERT(str)		ASSERT(str)
 #endif
 
-#ifndef assert
-#define assert(str)		ASSERT(str)
+#ifndef ASSERT
+#define ASSERT(str)		assert(str)
 #endif
 
 #ifndef VERIFY
@@ -485,7 +485,32 @@ typedef struct tagCnd8
 	::ReleaseDC((hWnd), (hDC));\
 	(hDC) = NULL;\
 } 
+//////////////////////////////////////////////////////////////////////////
+#ifndef SAFE_SELECT_PEN
+#define SAFE_SELECT_PEN(hDC, hPen)				((hDC) ? ((HPEN)::SelectObject((hDC), (HGDIOBJ)(HPEN)(hPen))) : (NULL))
+#endif
 
+
+#ifndef SAFT_SELECT_BRUSH
+#define SAFT_SELECT_BRUSH(hDC, hBrush)		((hDC) ? ((HBRUSH)::SelectObject((hDC), (HGDIOBJ)(HBRUSH)(hBrush))) : (NULL))
+#endif
+
+
+
+
+#ifndef SAFT_SELECT_FONT
+#define SAFT_SELECT_FONT(hDC, hFont)			((hDC) ? ((HFONT)::SelectObject((hDC), (HGDIOBJ)(HFONT)(hFont))) : (NULL))
+#endif
+
+
+
+#ifndef SAFT_SELECT_BITMAP
+#define SAFT_SELECT_BITMAP(hDC, hBitmap)	((hDC) ? ((HBITMAP)::SelectObject((hDC), (HGDIOBJ)(HBITMAP)(hBitmap))) : (NULL))
+#endif
+
+#ifndef SAFT_SELECT_RGN
+#define SAFT_SELECT_RGN(hDC, hRgn)				((hDC) ? ((HRGN)::SelectObject((hDC), (HGDIOBJ)(HRGN)(hRgn))) : (NULL))
+#endif
 //////////////////////////////////////////////////////////////////////////
 #undef SetControlText
 #define SetControlText(hWnd, nID, szText)			::SetWindowText(::GetDlgItem((hWnd), (nID)), (szText))
