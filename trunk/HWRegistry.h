@@ -16,7 +16,7 @@ purpose:	简单注册表访问函数, 接口简单 效率低下 不适合大量注册表访问
 
 DWORD		WINAPI XUE_RegQueryValueDWORD(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwDefData);
 BOOL		WINAPI XUE_RegSetValueDWORD(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwData);
-BOOL		WINAPI HWXUE_RegSetValueString(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, LPCTSTR pszData);
+BOOL		WINAPI XUE_RegSetValueString(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, LPCTSTR pszData);
 DWORD		WINAPI XUE_RegQueryValueString(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, LPCTSTR pszDefData, LPTSTR pszData, DWORD dwCount);
 BOOL		WINAPI XUE_RegSetValueBinary(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, const BYTE* pbData, DWORD dwByte);
 DWORD		WINAPI XUE_RegQueryValueBinary(HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, const BYTE* pbDefData, DWORD dwDefSize, BYTE* pbData, DWORD dwCount);
