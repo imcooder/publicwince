@@ -406,3 +406,98 @@ void WINAPI XUE_DrawAntiAliasLine( HDC hDC, int X0, int Y0, int X1, int Y1, COLO
 	and so needs no weighting */
 	SetPixel(hDC, X1, Y1, clrLine );
 }
+#ifdef UNDER_CE
+
+BOOL WINAPI XUE_LineDDA( int x0, int y0, int x1, int y1, LINEDDAPROC lpLineFunc, LPARAM lpData )
+{
+	if (!lpLineFunc)
+	{
+		return FALSE;
+	}
+	int i = 0, xSize = 0, ySize = 0, nCtrl = 0, xSign = 0, ySign = 0;
+	BOOL isInterchange = FALSE;
+
+	xSize = (x1 >= x0) ? (x1-x0) : (x0-x1);
+	ySize = (y1 >= y0) ? (y1-y0) : (y0-y1);	
+	xSign = (x1 >= x0) ? 1 : -1;
+	ySign = (y1 >= y0) ? 1 : -1;
+	if (!xSize)
+	{//竖线
+		if(y0 < y1 )
+		{
+			for(i = y0; i <= y1; i ++)
+			{
+				(*lpLineFunc)( x0, i, lpData);				
+			}
+		}
+		else
+		{
+			for(i = y0; i >= y1; i --)
+			{
+				(*lpLineFunc)( x0, i, lpData);	
+			}
+		}
+	}
+	else if (!ySize)
+	{//横线
+		if(x0 < x1 )
+		{
+			for(i = x0; i <= x1; i ++)
+			{
+				(*lpLineFunc)( i, y0, lpData);				
+			}
+		}
+		else
+		{
+			for(i = x0; i >= x1; i --)
+			{
+				(*lpLineFunc)( i, y0, lpData);	
+			}
+		}
+	}
+	else
+	{//斜线
+		if(ySize > xSize)
+		{// 交换数据
+			nCtrl = xSize;
+			xSize = ySize;
+			ySize = nCtrl;
+			isInterchange = TRUE;
+		}
+		else
+		{
+			isInterchange = FALSE;
+		}
+
+		nCtrl = (ySize << 1) - xSize;// 控制变量
+		for( i = 0; i <= xSize; i++ )
+		{
+			(*lpLineFunc)( x0, y0,  lpData);
+			if(nCtrl >= 0)
+			{
+				if(isInterchange)
+				{
+					x0 += xSign;
+				}
+				else
+				{
+					y0 += ySign;
+				}
+				nCtrl -= (xSize << 1);
+			}
+
+			if(isInterchange)
+			{
+				y0 += ySign;
+			}
+			else
+			{
+				x0 += xSign;
+			}
+
+			nCtrl += (ySize << 1);
+		}
+	}	
+}
+
+#endif
