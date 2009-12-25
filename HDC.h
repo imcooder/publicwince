@@ -28,4 +28,12 @@ BOOL WINAPI DrawRectangles(HDC, const LPRECT, LONG);
 void WINAPI XUE_DrawSolidLine(HDC hDC, int x0,int y0,int x1,int y1, LONG nWdith, DWORD dwColor);
 void WINAPI XUE_DrawAntiAliasLine( HDC, int X0, int Y0, int X1, int Y1, COLORREF);
 
+
+
+//////////////////////////////////////////////////////////////////////////
+#if defined(UNDER_CE) 
+typedef VOID (_stdcall* LINEDDAPROC)(int, int, LPARAM);
+BOOL WINAPI XUE_LineDDA(int x0, int y0, int x1, int y1, LINEDDAPROC lpLineFunc, LPARAM lpData);
+#endif
+//////////////////////////////////////////////////////////////////////////
 #endif //HWX_HDC_H
