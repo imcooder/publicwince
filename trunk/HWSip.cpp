@@ -73,10 +73,11 @@ LONG WINAPI XUE_SipEnable( LPCWSTR pszGUID, BOOL blEnable)
 		return -1;
 	}			
 	if (ERROR_SUCCESS != RegSetValueEx(hSubKeyIsSip, NULL, NULL, REG_SZ, (LPBYTE)szEnable, (_tcslen(szEnable) + 1) * sizeof(*szEnable)))
-	{
+	{		
 		SAFE_REG_CLOSEKEY(hSubKeyIsSip);		
 		return -1;
 	}
+	RegFlushKey(hSubKeyIsSip);
 	SAFE_REG_CLOSEKEY(hSubKeyIsSip);
 	return 0;
 }
