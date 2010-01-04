@@ -59,7 +59,8 @@ BOOL WINAPI XUE_RegSetValueDWORD( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue
 			if(ERROR_SUCCESS == ::RegSetValueEx (hSubKey, pszValue, 0L, REG_DWORD, (LPBYTE) &dwData, sizeof(dwData)))
 			{
 				blRet = TRUE;
-			}
+			}		
+			RegFlushKey(hSubKey);
 			RegCloseKey(hSubKey);
 			hSubKey = NULL;
 		}			
@@ -69,8 +70,9 @@ BOOL WINAPI XUE_RegSetValueDWORD( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue
 		if(ERROR_SUCCESS == ::RegSetValueEx (hKey, pszValue, 0L, REG_DWORD, (LPBYTE) &dwData, sizeof(dwData)))		
 		{
 			blRet = TRUE;
+			RegFlushKey(hKey);
 		}
-	}	
+	}		
 	return blRet;
 }
 
@@ -92,6 +94,7 @@ BOOL		WINAPI XUE_RegSetValueString( HKEY hKey , LPCTSTR pszSubKey, LPCTSTR pszVa
 			{
 				blRet = TRUE;
 			}
+			RegFlushKey(hSubKey);
 			RegCloseKey(hSubKey);
 			hSubKey = NULL;
 		}			
@@ -102,6 +105,7 @@ BOOL		WINAPI XUE_RegSetValueString( HKEY hKey , LPCTSTR pszSubKey, LPCTSTR pszVa
 		if(ERROR_SUCCESS == ::RegSetValueEx (hKey, pszValue, 0L, REG_SZ, (LPBYTE) pszData, dwSize))		
 		{
 			blRet = TRUE;
+			RegFlushKey(hKey);
 		}
 	}	
 	return blRet;
@@ -170,6 +174,7 @@ BOOL		WINAPI XUE_RegSetValueBinary( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszVal
 			{
 				blRet = TRUE;
 			}
+			RegFlushKey(hSubKey);
 			RegCloseKey(hSubKey);
 			hSubKey = NULL;
 		}			
@@ -179,6 +184,7 @@ BOOL		WINAPI XUE_RegSetValueBinary( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszVal
 		if(ERROR_SUCCESS == ::RegSetValueEx (hKey, pszValue, 0L, REG_BINARY, (LPBYTE) pbData, dwByte))		
 		{
 			blRet = TRUE;
+			RegFlushKey(hKey);
 		}
 	}	
 	return blRet;
@@ -247,7 +253,8 @@ BOOL		WINAPI XUE_RegDeleteValue( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue 
 			if (ERROR_SUCCESS != RegDeleteValue(hSubKey, pszValue))
 			{
 				blRet = FALSE;				
-			}				
+			}			
+			RegFlushKey(hSubKey);
 			RegCloseKey(hSubKey);
 			hSubKey = NULL;
 		}			
@@ -257,6 +264,7 @@ BOOL		WINAPI XUE_RegDeleteValue( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue 
 		if (ERROR_SUCCESS != RegDeleteValue(hKey, pszValue))
 		{
 			blRet = FALSE;			
+			RegFlushKey(hKey);
 		}	
 	}	
 	return blRet;
