@@ -129,8 +129,10 @@ LPSTR WINAPI Helper_StrDupA( LPCSTR pszStr)
 
 
 LONG WINAPI Helper_GetPathDirectoryW(LPCWSTR pwhFilePath, LPWSTR szDirectory)
-{	
-	WCHAR szDir[MAX_PATH] = {0};	
+{			
+#ifdef WINCE
+	{
+		WCHAR szDir[MAX_DIR] = {0};
 	if (!pwhFilePath)
 	{
 		return -1;
@@ -147,31 +149,51 @@ LONG WINAPI Helper_GetPathDirectoryW(LPCWSTR pwhFilePath, LPWSTR szDirectory)
 		StringCchCopy(szDirectory, wcslen(szDir), szDir);
 	}
 	return wcslen(szDir);
-}
-LONG WINAPI Helper_GetPathDirectoryA(LPCSTR pchFilePath, LPSTR szDirectory)
-{
-	LONG nLen = 0;	
-	CHAR szPath[MAX_PATH] = {0};
-#ifdef WINCE
-	{
-		LPWSTR pszPath = CharToWChar(pchFilePath);
-		if (pszPath)
-		{
-			WCHAR szDir[MAX_PATH] = {0};
-			Helper_GetPathDirectoryW(pszPath, szDir);
-			LPSTR pszDir = WCharToChar(szDir);
-			if (szDirectory)
-			{
-				nLen = (LONG)strlen(pszDir) + 1;
-				StringCchCopyA(szDirectory, nLen, pszDir);
-			}
-			SAFE_DELETE_AR(pszDir);
-		}
-		SAFE_DELETE_AR(pszPath);
 	}
 #else
 	{
+		LONG nLen = 0;
+		WCHAR szDir[MAX_DIR] = {0};				
+		WCHAR szPath[MAX_PATH] = {0};
+		if(0 == _wsplitpath_s(pwhFilePath, szPath, MAX_PATH, szDir, MAX_DIR, NULL, 0, NULL, 0))
+		{
+			StringCchCatW(szPath, _countof(szPath), szDir);		
+			nLen = (LONG)wcslen(szPath) + 1;
+		}
+		if (szDirectory)
+		{
+			StringCchCopyW(szDirectory, nLen, szPath);
+		}
+		return wcslen(szPath);
+	}
+#endif
+}
+LONG WINAPI Helper_GetPathDirectoryA(LPCSTR pchFilePath, LPSTR szDirectory)
+{			
+#ifdef WINCE
+	{
+		LONG nLen = 0;
+		WCHAR szDir[MAX_PATH] = {0};
+		LPWSTR pszPath = CharToWChar(pchFilePath);
+		if (pszPath)
+		{			
+			Helper_GetPathDirectoryW(pszPath, szDir);			
+			if (szDirectory)
+			{
+				LPSTR pszDir = WCharToChar(szDir);
+				nLen = (LONG)strlen(pszDir) + 1;
+				StringCchCopyA(szDirectory, nLen, pszDir);
+				SAFE_DELETE_AR(pszDir);
+			}			
+		}
+		SAFE_DELETE_AR(pszPath);
+		return wcslen(szDir);
+	}
+#else
+	{
+		LONG nLen = 0;
 		CHAR szDir[MAX_DIR] = {0};		
+		CHAR szPath[MAX_PATH] = {0};
 		if(0 == _splitpath_s(pchFilePath, szPath, MAX_PATH, szDir, MAX_DIR, NULL, 0, NULL, 0))
 		{
 			StringCchCatA(szPath, _countof(szPath), szDir);		
@@ -181,10 +203,9 @@ LONG WINAPI Helper_GetPathDirectoryA(LPCSTR pchFilePath, LPSTR szDirectory)
 		{
 			strcpy_s(szDirectory, nLen, szPath);
 		}
+		return nLen;
 	}
-#endif
-	
-	return nLen;
+#endif		
 }
 LPSTR WINAPI Helper_StrMoveA(LPSTR pszD, LPCSTR pszSrc)
 {

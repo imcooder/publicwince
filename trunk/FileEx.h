@@ -16,7 +16,9 @@
 #define HWIsFileExist    XIsFileExistW
 #define HWRemoveFile     XRemoveFileW
 #define HWDeleteDirectory  XDeleteDirectoryW
-
+#define HWIsValidDirectory		XUE_IsValidDirectoryW
+#define HWIsValidFile					XUE_IsValidFileW	
+#define HWCopyFolder					XUE_CopyFolderW
 #else
 
 #define HWLoadFile			 HWLoadFileA
@@ -28,7 +30,9 @@
 #define HWIsFileExist    XIsFileExistA
 #define HWRemoveFile     XRemoveFileA
 #define HWDeleteDirectory  XDeleteDirectoryA
-
+#define HWIsValidDirectory		XUE_IsValidDirectoryA
+#define HWIsValidFile					XUE_IsValidFileA	
+#define HWCopyFolder					XUE_CopyFolderA
 #endif
 
 
@@ -74,8 +78,12 @@ extern "C"{
 	DLLXEXPORT  BOOL    WINAPI    XDeleteDirectoryW(LPCWSTR , BOOL blDelAll);
 	DLLXEXPORT  BOOL    WINAPI    XDeleteDirectoryA(LPCSTR , BOOL blDelAll);
 
-
-
+	DLLXEXPORT BOOL			WINAPI		XUE_IsValidFileW(LPCWSTR pszFile);
+	DLLXEXPORT BOOL			WINAPI		XUE_IsValidFileA(LPCSTR pszFile);;
+	DLLXEXPORT BOOL			WINAPI		XUE_IsValidDirectoryW(LPCSTR pszDir); 
+	DLLXEXPORT BOOL			WINAPI		XUE_IsValidDirectoryA(LPCSTR pszDir);  
+	DLLXEXPORT BOOL			WINAPI		XUE_CopyFolderW(LPCWSTR pszSrc, LPCWSTR pszDes, BOOL bOverWrite);
+	DLLXEXPORT BOOL			WINAPI		XUE_CopyFolderA(LPCSTR pszSrc, LPCSTR pszDes, BOOL bOverWrite);
 	//
 	LONG WINAPI HWXUE_GetFileName(const TCHAR *pszFilePath, TCHAR *pszName, LONG nMax);
 /*
