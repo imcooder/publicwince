@@ -28,7 +28,10 @@ BOOL WINAPI DrawRectangles(HDC, const LPRECT, LONG);
 void WINAPI XUE_DrawSolidLine(HDC hDC, int x0,int y0,int x1,int y1, LONG nWdith, DWORD dwColor);
 void WINAPI XUE_DrawAntiAliasLine( HDC, int X0, int Y0, int X1, int Y1, COLORREF);
 
-
+//////////////////////////////////////////////////////////////////////////
+#define XUE_STRETCHDRAW_NORMAL								0x0001
+#define XUE_STRETCHDRAW_NOSHAPE								0x0002
+BOOL WINAPI XUE_StretchDraw(HDC hdcDest, const RECT*, HDC hdcSrc, const RECT*,	DWORD dwRop, DWORD dwStretchMode);
 
 //////////////////////////////////////////////////////////////////////////
 #if defined(UNDER_CE) 
