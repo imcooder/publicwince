@@ -20,7 +20,8 @@ LONG WINAPI RectHeight(const LPRECT);
 POINT WINAPI RectCenterPoint(const LPRECT);
 void WINAPI RectSwapLeftRight(LPRECT);
 void WINAPI RectSwapTopBottom(LPRECT);
-BOOL WINAPI IsRectEmpty(const LPRECT) ;
+BOOL WINAPI IsRectEmpty(const LPRECT);
+BOOL WINAPI IsRectEqual(const RECT*, const RECT*);
 BOOL WINAPI PtInRect(const LPRECT, POINT);
 void WINAPI InflateRect(LPRECT, SIZE);
 void WINAPI InflateRect(LPRECT, int, int, int, int);
@@ -30,5 +31,7 @@ void WINAPI OffsetRect(LPRECT, POINT);
 void WINAPI OffsetRect(LPRECT, SIZE);
 void WINAPI RectMoveTo(LPRECT, int, int);
 void WINAPI RectMoveTo(LPRECT, POINT);
+void WINAPI RectCenterMoveTo(LPRECT, int, int);
+void WINAPI RectCenterMoveTo(LPRECT, POINT);
 void WINAPI ZoomRect(LPRECT, float, float);
 #endif //HWX_RECT_H

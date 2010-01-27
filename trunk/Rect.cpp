@@ -209,6 +209,7 @@ void WINAPI RectMoveTo(LPRECT lpRect, int x, int y)
 	lpRect->right = lpRect->right - lpRect->left + x;
 	lpRect->left = x;
 	lpRect->bottom = lpRect->bottom - lpRect->top + y;
+	lpRect->top = y;
 }
 void WINAPI RectMoveTo(LPRECT lpRect, POINT pt)
 { 
@@ -219,7 +220,28 @@ void WINAPI RectMoveTo(LPRECT lpRect, POINT pt)
 	}
 	RectMoveTo(lpRect, pt.x, pt.y);
 }
+void WINAPI RectCenterMoveTo( LPRECT pRect, int x, int y)
+{
+	ASSERT(pRect);
+	if (!pRect)
+	{
+		return;
+	}	
+	LONG nWidth = pRect->right - pRect->left, nHeight = pRect->bottom - pRect->top;
+	SetRect(pRect, x - nWidth / 2, y - nHeight / 2, x + nWidth / 2, y + nHeight / 2);
+	return;
+}
 
+void WINAPI RectCenterMoveTo( LPRECT pRect, POINT pointCenter)
+{
+	ASSERT(pRect);
+	if (!pRect)
+	{
+		return;
+	}		
+	RectCenterMoveTo(pRect, pointCenter.x, pointCenter.y);
+	return;
+}
 void WINAPI ZoomRect( LPRECT lpRect, float fx, float fy)
 {
 	ASSERT(lpRect);
@@ -233,3 +255,15 @@ void WINAPI ZoomRect( LPRECT lpRect, float fx, float fy)
 	lpRect->bottom *= fy;
 	return;
 }
+
+BOOL WINAPI IsRectEqual( const RECT* pRectA, const RECT* pRectB)
+{
+	ASSERT(pRectA);
+	ASSERT(pRectB);
+	if (!pRectA || !pRectB)
+	{
+		return FALSE;
+	}
+	return pRectA->left == pRectB->left && pRectA->top == pRectB->top && pRectA->right == pRectB->right && pRectA->bottom == pRectB->bottom;
+}
+

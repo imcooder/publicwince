@@ -499,5 +499,57 @@ BOOL WINAPI XUE_LineDDA( int x0, int y0, int x1, int y1, LINEDDAPROC lpLineFunc,
 		}
 	}	
 }
-
 #endif
+
+
+BOOL WINAPI XUE_StretchDraw( HDC hdcDest, const RECT* prtDest, HDC hdcSrc, const RECT* prtSrc, DWORD dwRop, DWORD dwStretchMode )
+{
+	if (!hdcDest || !hdcSrc || !prtDest || !prtSrc)
+	{
+		return FALSE;
+	}
+	RECT rtDest = *prtDest;
+	RECT rtSrc = *prtSrc;
+	if (IsRectEmpty(&rtDest) || IsRectEmpty(&rtSrc))
+	{
+		return TRUE;
+	}
+	if (IsRectEqual(&rtDest, &rtSrc))
+	{
+		return ::BitBlt(hdcDest, rtDest.left, rtDest.top, rtDest.right - rtDest.left, rtDest.bottom - rtDest.top, hdcSrc, rtSrc.left, rtSrc.top, dwRop);
+	}
+	else
+	{				
+		if (dwStretchMode & XUE_STRETCHDRAW_NORMAL)
+		{
+			return ::StretchBlt(hdcDest, rtDest.left, rtDest.top, rtDest.right - rtDest.left, rtDest.bottom - rtDest.top, hdcSrc, rtSrc.left, rtSrc.top, rtSrc.right - rtSrc.left, rtSrc.bottom - rtSrc.top, dwRop);
+		}
+		else if(dwStretchMode & XUE_STRETCHDRAW_NOSHAPE)
+		{
+			RECT rtTmpDest = rtDest;
+			POINT pointCenterDest = {(rtDest.left + rtDest.right) >> 1, (rtDest.top + rtDest.bottom) >> 1};
+			POINT pointCenterSrc	= {(rtSrc.left + rtSrc.right) >> 1, (rtSrc.top + rtSrc.bottom) >> 1};
+			LONG nAngleDest = ((rtDest.right - rtDest.left) * (rtSrc.bottom - rtSrc.top));
+			LONG nAngleSrc = ((rtSrc.right - rtSrc.left) * (rtDest.bottom - rtDest.top));
+			if (_abs(nAngleDest) >=  _abs(nAngleSrc))
+			{
+				rtTmpDest.top = 0;
+				rtTmpDest.bottom = rtDest.bottom - rtDest.top;
+				LONG nWidth = (rtSrc.right - rtSrc.left) * (rtTmpDest.bottom - rtTmpDest.top) / (rtSrc.bottom - rtSrc.top);
+				rtTmpDest.left = 0;
+				rtTmpDest.right = nWidth;
+			}
+			else
+			{
+				rtTmpDest.left = 0;
+				rtTmpDest.right = rtDest.right - rtDest.left;
+				LONG nHeight = (rtSrc.bottom - rtSrc.top) * (rtTmpDest.right - rtTmpDest.left) / (rtSrc.right - rtSrc.left);
+				rtTmpDest.top = 0;
+				rtTmpDest.bottom = nHeight;
+			}		
+			RectCenterMoveTo(&rtTmpDest, (rtDest.right + rtDest.left) / 2, (rtDest.bottom + rtDest.top) / 2);
+			return ::StretchBlt(hdcDest, rtTmpDest.left, rtTmpDest.top, rtTmpDest.right - rtTmpDest.left, rtTmpDest.bottom - rtTmpDest.top, hdcSrc, rtSrc.left, rtSrc.top, rtSrc.right - rtSrc.left, rtSrc.bottom - rtSrc.top, dwRop);
+		}	
+
+	}	
+}

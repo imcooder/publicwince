@@ -20,8 +20,12 @@ public:
 	virtual LRESULT DestroyWindow();
 	
 protected:	
-	virtual LRESULT _DialogProc(HWND, UINT, WPARAM, LPARAM);		
+	virtual LRESULT _DialogProc(HWND, UINT, WPARAM, LPARAM);	
+	virtual LRESULT OnInitDialog(HWND, UINT, WPARAM, LPARAM);	
 	virtual LRESULT OnClose(HWND, UINT, WPARAM, LPARAM);	
+	virtual LRESULT OnActivate(HWND, UINT, WPARAM, LPARAM);
+	virtual LRESULT OnSettingChange(HWND, UINT, WPARAM, LPARAM);
+	
 protected:	
 };
 
