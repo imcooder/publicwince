@@ -3,6 +3,46 @@
 #include <tchar.h>
 #include <assert.h>
 
+void  WINAPI RegDeleteAllSubKey(HKEY hKey) 
+{   
+	DWORD   dwCount = 0;   
+	TCHAR		szSubkeyName[512];   
+	HKEY		hKeySub = NULL; 
+	if (!hKey)
+	{
+		return;
+	}
+	if(ERROR_SUCCESS != RegQueryInfoKey(hKey, 0, 0, 0, &dwCount, 0, 0, 0, 0, 0, 0, 0))   
+	{   		
+		return;   
+	}   
+	else if(dwCount)   
+	{
+		for(DWORD i = 0; i < dwCount; i ++)   
+		{   
+			DWORD dwNameLen = _countof(szSubkeyName);
+			if(ERROR_SUCCESS != RegEnumKeyEx(hKey, 0, szSubkeyName, &dwNameLen, NULL, NULL, NULL, NULL))   
+			{   
+				assert(0);  					
+				return;   
+			}   			
+			if(ERROR_SUCCESS != RegOpenKeyEx(hKey, szSubkeyName, 0L, KEY_ALL_ACCESS, &hKeySub))   
+			{   
+				assert(0);   					
+				return;   
+			}   			
+			RegDeleteAllSubKey(hKeySub);//µ÷ÓÃµÝ¹é
+			RegCloseKey(hKeySub);   
+			hKeySub = NULL;
+			if(ERROR_SUCCESS != RegDeleteKey(hKey, szSubkeyName))   
+			{   
+				assert(0);   					  
+				return;   
+			}   			
+		}  
+	}		
+} 
+
 
 DWORD WINAPI XUE_RegQueryValueDWORD( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue, DWORD dwData )
 {
@@ -268,4 +308,225 @@ BOOL		WINAPI XUE_RegDeleteValue( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue 
 		}	
 	}	
 	return blRet;
+}
+
+BOOL		WINAPI XUE_RegDeleteKey( HKEY hKey, LPCTSTR pszSubKey )
+{		
+	BOOL blRet = FALSE;	
+	if (!pszSubKey || !hKey)
+	{		
+		return FALSE;
+	}	
+	HKEY hSubKey = NULL;
+	if (ERROR_SUCCESS == RegOpenKeyEx (hKey, pszSubKey, 0L, KEY_ALL_ACCESS, &hSubKey))
+	{
+		RegDeleteAllSubKey(hSubKey);
+		RegCloseKey(hSubKey);
+		hSubKey = NULL;
+		if (ERROR_SUCCESS == RegDeleteKey(hKey, pszSubKey))
+		{
+			blRet = TRUE;		
+		}
+	}	
+	return blRet;	
+}
+
+BOOL		WINAPI XUE_RegIsKeyExists( HKEY hKey, LPCTSTR pszSubKey )
+{	
+	BOOL blRet = FALSE;
+	if (!hKey)
+	{
+		return blRet;
+	}	
+	if (pszSubKey && _tcslen(pszSubKey))
+	{				
+		HKEY hSubKey = NULL;
+		if (ERROR_SUCCESS == RegOpenKeyEx (hKey, pszSubKey, 0L, KEY_READ, &hSubKey))
+		{			
+			RegCloseKey(hSubKey);
+			hSubKey = NULL;
+			blRet = TRUE;
+		}			
+	}
+	else
+	{
+		blRet = TRUE;			
+	}	
+	return blRet;
+}
+
+BOOL		WINAPI XUE_RegIsValueExists( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue )
+{
+	BOOL blRet = FALSE;
+	if (!hKey)
+	{
+		return blRet;
+	}	
+	if (pszSubKey && _tcslen(pszSubKey))
+	{				
+		HKEY hSubKey = NULL;
+		if (ERROR_SUCCESS == RegOpenKeyEx (hKey, pszSubKey, 0L, KEY_READ, &hSubKey))
+		{
+			DWORD dwValueType = REG_NONE, dwValueSize = 0;
+			if(ERROR_SUCCESS == RegQueryValueEx (hSubKey, pszValue, NULL,	&dwValueType, NULL, &dwValueSize))
+			{		
+				blRet = TRUE;								
+			}
+			RegCloseKey(hSubKey);
+			hSubKey = NULL;
+		}			
+	}
+	else
+	{
+		DWORD dwValueType = REG_NONE, dwValueSize = 0;
+		if(ERROR_SUCCESS == RegQueryValueEx (hKey, pszValue, NULL,	&dwValueType, NULL, &dwValueSize))
+		{		
+			blRet = TRUE;					
+		}
+	}	
+	return blRet;
+}
+
+DWORD		WINAPI XUE_RegQueryValueType( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue )
+{	
+	DWORD dwValueSize = 0, dwValueType = REG_NONE;
+	if (!hKey)
+	{
+		return dwValueType;
+	}
+	
+	if (pszSubKey && _tcslen(pszSubKey))
+	{				
+		HKEY hSubKey = NULL;
+		if (ERROR_SUCCESS == RegOpenKeyEx (hKey, pszSubKey, 0L, KEY_READ, &hSubKey))
+		{
+			if(ERROR_SUCCESS == RegQueryValueEx (hSubKey, pszValue, NULL,	&dwValueType, NULL, &dwValueSize))
+			{						
+							
+			}
+			else
+			{
+				dwValueType = REG_NONE;
+			}
+			RegCloseKey(hSubKey);
+			hSubKey = NULL;
+		}			
+	}
+	else
+	{
+		if(ERROR_SUCCESS == RegQueryValueEx (hKey, pszValue, NULL,	&dwValueType, NULL, &dwValueSize))
+		{		
+					
+		}
+		else
+		{
+			dwValueType = REG_NONE;
+		}
+	}	
+	return dwValueType;
+}
+
+BOOL		WINAPI XUE_RegIsValueDWORD( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue )
+{
+	return REG_DWORD == XUE_RegQueryValueType(hKey, pszSubKey, pszValue);
+}
+
+BOOL		WINAPI XUE_RegIsValueString( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue )
+{
+	return REG_SZ == XUE_RegQueryValueType(hKey, pszSubKey, pszValue);
+}
+
+BOOL		WINAPI XUE_RegIsValueBinary( HKEY hKey, LPCTSTR pszSubKey, LPCTSTR pszValue )
+{
+	return REG_BINARY == XUE_RegQueryValueType(hKey, pszSubKey, pszValue);
+}
+BOOL		WINAPI RegDeleteAllValue( HKEY hKey)
+{
+	BOOL blRet = TRUE;
+	DWORD   dwCount = 0;   
+	TCHAR		szValueName[512]; 	
+	if (!hKey)
+	{
+		blRet = FALSE;
+		return blRet;
+	}
+	if(ERROR_SUCCESS != RegQueryInfoKey(hKey, 0, 0, 0, 0, 0, 0, &dwCount, 0, 0, 0, 0))   
+	{   
+		blRet = FALSE;
+		return blRet;   
+	}   
+	else if(dwCount)   
+	{
+		for(DWORD i = 0; i < dwCount; i ++)   
+		{   		
+			DWORD dwValueLen = _countof(szValueName);
+			if(ERROR_SUCCESS != RegEnumValue(hKey, 0, szValueName, &dwValueLen, NULL, NULL, NULL, NULL))   
+			{   
+				blRet = FALSE;
+				assert(0);  					
+				return blRet;   
+			}   			
+			if(ERROR_SUCCESS != RegDeleteValue(hKey, szValueName))   
+			{   
+				if (blRet)
+				{
+					blRet = FALSE;
+				}
+				assert(0);   					
+				return blRet;   
+			}  					
+		}  
+	}	
+	return blRet;
+}
+
+BOOL		WINAPI XUE_RegDeleteAllValue( HKEY hKey, LPCTSTR pszSubKey )
+{
+	DWORD   dwCount = 0;   
+	TCHAR		szValueName[512]; 	
+	if (!hKey)
+	{
+		return FALSE;
+	}
+	if (pszSubKey && _tcslen(pszSubKey))
+	{				
+		HKEY hSubKey = NULL;
+		if (ERROR_SUCCESS == RegOpenKeyEx (hKey, pszSubKey, 0L, KEY_READ, &hSubKey))
+		{
+			RegDeleteAllValue(hSubKey);
+			RegCloseKey(hSubKey);
+			hSubKey = NULL;
+		}			
+	}
+	else
+	{
+		RegDeleteAllValue(hKey);	
+	}	
+	return TRUE;
+}
+
+
+BOOL		WINAPI XUE_RegDeleteAllSubKey( HKEY hKey, LPCTSTR pszSubKey )
+{
+	DWORD   dwCount = 0;   
+	TCHAR		szValueName[512]; 	
+	if (!hKey)
+	{
+		return FALSE;
+	}
+	if (pszSubKey && _tcslen(pszSubKey))
+	{				
+		HKEY hSubKey = NULL;
+		if (ERROR_SUCCESS == RegOpenKeyEx (hKey, pszSubKey, 0L, KEY_READ, &hSubKey))
+		{
+			RegDeleteAllSubKey(hSubKey);
+			RegCloseKey(hSubKey);
+			hSubKey = NULL;		 
+		}			
+	}
+	else
+	{
+		RegDeleteAllSubKey(hKey);	
+	}	
+	return TRUE;
 }
