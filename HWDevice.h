@@ -13,4 +13,5 @@
 
 void WINAPI BacklightForce(BOOL);
 void WINAPI BacklightLight();
+LONG WINAPI XUE_GetSDID(LPTSTR pszID, LONG nLen);
 #endif //HWX_HWDEVICE_H
