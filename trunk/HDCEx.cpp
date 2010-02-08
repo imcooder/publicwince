@@ -9,260 +9,295 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 #include "stdafx.h"
 #include "HDCEx.h"
 
-#ifdef _DEBUG
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#define new DEBUG_NEW
-#endif
 #define COLORREF_NULL   (COLORREF)-1
 
 
-//===========================================================================
-// CXBufferDC class
-//===========================================================================
-
-CBufferDC::CBufferDC(HDC hDestDC, const RECT& rcPaint)
-: m_hDestDC (hDestDC)
-{
-	m_rect = rcPaint;
-	m_hMemDC = CreateCompatibleDC(hDestDC);
-	if (!m_hMemDC)
-		return;
-	m_hBitmap = CreateCompatibleBitmap(m_hDestDC, _abs(m_rect.right - m_rect.left), _abs(m_rect.bottom - m_rect.top));	
-	m_hOldBitmap = ::SelectObject (m_hMemDC, m_hBitmap);
-}
-CBufferDC::~CBufferDC()
-{
-	if (!m_hMemDC)
-		return;
-
-	if (m_hDestDC)
-	{
-		::BitBlt (m_hDestDC, m_rect.left, m_rect.top, _abs(m_rect.right - m_rect.left), _abs(m_rect.bottom - m_rect.top)
-			, m_hMemDC, m_rect.left, m_rect.top, SRCCOPY);
-	}
-	::SelectObject (m_hMemDC, m_hOldBitmap);
-	m_hOldBitmap = NULL;
-	DeleteObject(m_hBitmap);
-	m_hBitmap = NULL;
-	DeleteDC(m_hMemDC);
-	m_hMemDC = NULL;
-}
-
-HDC CBufferDC::GetHDC()
-{
-	return m_hMemDC;
-}
-//===========================================================================
-// CXBufferDC class
-//===========================================================================
-
-CXBufferDCEx::CXBufferDCEx(HDC hDestDC, const RECT rcPaint) 
-: m_hDestDC (hDestDC)
-{
-	m_rect = rcPaint;
-	m_hMemDC = ::CreateCompatibleDC (m_hDestDC);
-	m_bitmap = ::CreateCompatibleBitmap(m_hDestDC, _abs(m_rect.right - m_rect.left), _abs(m_rect.bottom - m_rect.top));
-
-	m_hOldBitmap = ::SelectObject (m_hMemDC, m_bitmap);
-
-	SetViewportOrgEx(m_hMemDC, -rcPaint.left, -rcPaint.top, NULL);
-}
-
-CXBufferDCEx::~CXBufferDCEx()
-{
-	SetViewportOrgEx(m_hMemDC, 0, 0, NULL);
-	::BitBlt (m_hDestDC, m_rect.left, m_rect.top, _abs(m_rect.right - m_rect.left), _abs(m_rect.bottom - m_rect.top)
-		, m_hMemDC, 0, 0, SRCCOPY);
-	::SelectObject (m_hMemDC, m_hOldBitmap);
-	::DeleteObject(m_bitmap);
-	DeleteDC(m_hMemDC);
-	m_hMemDC = NULL;
-}
-
-//===========================================================================
-// CBitmapDC class
-//===========================================================================
-
-CBitmapDC::CBitmapDC(HDC hDC, HBITMAP hBitmap)
+CXUE_BitmapLock::CXUE_BitmapLock(HDC hDC, HBITMAP hBitmap)
 : m_hDC(hDC)
 {
 	m_hOldBitmap = SelectObject(m_hDC, hBitmap);
 }
 
-CBitmapDC::~CBitmapDC()
+CXUE_BitmapLock::~CXUE_BitmapLock()
 {
-	::SelectObject(m_hDC, m_hOldBitmap);
+	if (m_hOldBitmap)
+	{
+		::SelectObject(m_hDC, m_hOldBitmap);
+		m_hOldBitmap = NULL;
+	}	
 }
 
-void CBitmapDC::SetBitmap(HBITMAP hBitmap)
+void CXUE_BitmapLock::SetBitmap(HBITMAP hBitmap)
 {
-	::SelectObject(m_hDC, m_hOldBitmap);
-	m_hOldBitmap = SelectObject(m_hDC, hBitmap);
+	if (m_hOldBitmap)
+	{
+		::SelectObject(m_hDC, m_hOldBitmap);
+		m_hOldBitmap = NULL;
+	}
+	assert(m_hDC);
+	if (hBitmap)
+	{
+		m_hOldBitmap = (HBITMAP)::SelectObject(m_hDC, hBitmap);
+	}	
 }
 
-//===========================================================================
-// CXFontDC class
-//===========================================================================
-
-CFontDC::CFontDC(HDC hDC, HFONT hFont)
+CXUE_FontLock::CXUE_FontLock(HDC hDC, HFONT hFont)
+: m_hDC(hDC)
+, m_hFont(NULL)
+, m_hFontOld(NULL)
+, m_crOldTextColor(COLORREF_NULL)
 {
-	assert(hDC);
-
-	m_hDC = hDC;
-	m_hOldFont = NULL;
-	m_crOldTextColor = COLORREF_NULL;
+	assert(m_hDC);	
 	if (hFont)
 	{
-		SetFont(hFont);
+		m_hFontOld = (HFONT)::SelectObject(m_hDC, hFont);		
 	}
 }
 
-CFontDC::CFontDC(HDC hDC, HFONT hFont, COLORREF clrTextColor)
+CXUE_FontLock::CXUE_FontLock(HDC hDC, HFONT hFont, COLORREF clrTextColor)
+: m_hDC(hDC)
+, m_hFont(NULL)
+, m_hFontOld(NULL)
+, m_crOldTextColor(COLORREF_NULL)
 {
-	ASSERT(hDC);
-	ASSERT(clrTextColor != COLORREF_NULL);
-
-	m_hDC = hDC;
-	m_hOldFont = NULL;
-	m_crOldTextColor = COLORREF_NULL;
-
-
+	assert(m_hDC);
 	if (hFont)
-	{
-		SetFont(hFont);
+	{	
+		m_hFontOld = (HFONT)::SelectObject(m_hDC, hFont);		
 	}
-
-	SetColor(clrTextColor);
-}
-
-CFontDC::~CFontDC()
-{
-	ReleaseFont();
-	ReleaseColor();
-}
-
-void CFontDC::SetFont(HFONT hFont)
-{
-	if (m_hDC && hFont)
+	if (COLORREF_NULL != clrTextColor)
 	{
-		if (m_hOldFont)
-		{
-			SelectObject(m_hDC, m_hOldFont);
-			m_hOldFont = NULL;
-		}
-		m_hOldFont = (HFONT)SelectObject(m_hDC, hFont);
+		m_crOldTextColor = ::SetTextColor(m_hDC, clrTextColor);	
+	}	
+}
+
+CXUE_FontLock::~CXUE_FontLock()
+{
+	if (m_hFontOld)
+	{
+		SelectObject(m_hDC, m_hFontOld);
+		m_hFontOld = NULL;
+	}
+	if (m_hFont)
+	{
+		::DeleteObject(m_hFont);
+		m_hFont = NULL;
+	}
+	if (COLORREF_NULL != m_crOldTextColor)
+	{
+		::SetTextColor(m_hDC, m_crOldTextColor);
+		m_crOldTextColor = COLORREF_NULL;
 	}
 }
 
-void CFontDC::SetColor(COLORREF clrTextColor)
+void CXUE_FontLock::SetColor(COLORREF clrTextColor)
 {
-	ASSERT(clrTextColor != COLORREF_NULL);
-	ASSERT(m_hDC);
+	assert(clrTextColor != COLORREF_NULL);
+	assert(m_hDC);
 
 	if (m_hDC && clrTextColor != COLORREF_NULL)
 	{
 		if (m_crOldTextColor != COLORREF_NULL)
 		{
-			SetTextColor(m_hDC, m_crOldTextColor);
-			m_crOldTextColor = NULL;
+			::SetTextColor(m_hDC, m_crOldTextColor);
+			m_crOldTextColor = COLORREF_NULL;
 		}
-		m_crOldTextColor = SetTextColor(m_hDC, clrTextColor);	
+		m_crOldTextColor = ::SetTextColor(m_hDC, clrTextColor);	
 	}
 }
 
-void CFontDC::SetFontColor(HFONT hFont, COLORREF clrTextColor)
+void CXUE_FontLock::ReplaceCurrentFont( const LOGFONT*  pLogFont)
 {
-	SetFont(hFont);
-	SetColor(clrTextColor);
-}
-
-void CFontDC::ReleaseFont()
-{
-	ASSERT(m_hDC);
-	if (m_hDC && m_hOldFont)
+	if (!pLogFont || !m_hDC)
 	{
-		SelectObject(m_hDC, m_hOldFont);
-		m_hOldFont = NULL;
+		return;
 	}
-}
-
-void CFontDC::ReleaseColor()
-{
-	ASSERT(m_hDC);
-	if (m_hDC && m_crOldTextColor != COLORREF_NULL)
+	HFONT hFontNew = NULL;
+	VERIFY(hFontNew = ::CreateFontIndirect (pLogFont));
+	if (hFontNew)
 	{
-		SetTextColor(m_hDC, m_crOldTextColor);
-		m_crOldTextColor = COLORREF_NULL;
-	}
+		if (m_hFontOld)
+		{
+			::SelectObject (m_hDC, m_hFontOld);
+			m_hFontOld = NULL;
+		}
+
+		if (m_hFont)
+		{
+			::DeleteObject(m_hFont);
+			m_hFont = NULL;
+		}	
+		m_hFont = hFontNew;
+		m_hFontOld = (HFONT)::SelectObject (m_hDC, m_hFont);
+	}			
+	return;
 }
 
-//===========================================================================
-// CXPenDC class
-//===========================================================================
+void CXUE_FontLock::SetFontFaceName( LPCTSTR pszFaceName)
+{
+	if (!pszFaceName || !m_hDC)
+	{
+		return;
+	}
+	LOGFONT logFont;
+	HFONT hFontCurrent = (HFONT)::GetCurrentObject(m_hDC, OBJ_FONT);
+	if (!hFontCurrent)
+	{
+		return;
+	}
+	GetObject(hFontCurrent, sizeof(logFont), &logFont);
+	hFontCurrent = NULL;
+	StringCchCopy(logFont.lfFaceName, _countof(logFont.lfFaceName), pszFaceName);	
+	ReplaceCurrentFont(&logFont);	
+}
 
-CPenDC::CPenDC(HDC hDC, HPEN hPen)
+void CXUE_FontLock::SetFontSize( LONG nSize)
+{
+	if (!m_hDC)
+	{
+		return;
+	}
+	LOGFONT logFont;
+	HFONT hFontCurrent = (HFONT)::GetCurrentObject(m_hDC, OBJ_FONT);
+	if (!hFontCurrent)
+	{
+		return;
+	}
+	GetObject(hFontCurrent, sizeof(logFont), &logFont);
+	hFontCurrent = NULL;
+	logFont.lfHeight = nSize;
+	ReplaceCurrentFont(&logFont);	
+}
+CXUE_PenLock::CXUE_PenLock(HDC hDC, HPEN hPen)
 : m_hDC(hDC)
 , m_hPen(NULL)
+, m_hOldPen(NULL)
 {
 	assert(hDC);
 	assert(hPen);
-	m_hOldPen = (HPEN)::SelectObject(m_hDC, hPen);
+	if (hPen)
+	{
+		m_hOldPen = (HPEN)::SelectObject(m_hDC, hPen);
+	}	
 }
 
-CPenDC::CPenDC(HDC hDC, COLORREF crColor)
+CXUE_PenLock::CXUE_PenLock(HDC hDC, INT fnPenStyle, INT nWidth,	COLORREF crColor)
 : m_hDC (hDC)
 , m_hPen(NULL)
+, m_hOldPen(NULL)
 {
-	VERIFY(m_hPen = CreatePen (PS_SOLID, 1, crColor));
-	m_hOldPen = (HPEN)::SelectObject (m_hDC, m_hPen);
+	LOGPEN logPen = {fnPenStyle, {nWidth, 1}, crColor};
+	ReplaceCurrentPen(&logPen);	
 }
 
-CPenDC::~CPenDC ()
-{
-	::SelectObject (m_hDC, m_hOldPen);
-}
-
-void CPenDC::Color(COLORREF crColor)
+CXUE_PenLock::~CXUE_PenLock ()
 {
 	if (m_hOldPen)
 	{
 		::SelectObject (m_hDC, m_hOldPen);
 		m_hOldPen = NULL;
-	}
-	
+	}	
 	if (m_hPen)
 	{
-		DeleteObject(m_hPen);
+		::DeleteObject(m_hPen);
 		m_hPen = NULL;
 	}	
-	VERIFY(m_hPen = CreatePen (PS_SOLID, 1, crColor));
-	m_hOldPen = (HPEN)::SelectObject (m_hDC, m_hPen);
+}
+void CXUE_PenLock::ReplaceCurrentPen(const LOGPEN* pLogPen)
+{	
+	if (!pLogPen)
+	{
+		return;
+	}
+	HPEN hPenNew = NULL;
+	VERIFY(hPenNew = ::CreatePenIndirect (pLogPen));
+	if (hPenNew)
+	{
+		if (m_hOldPen)
+		{
+			::SelectObject (m_hDC, m_hOldPen);
+			m_hOldPen = NULL;
+		}
+
+		if (m_hPen)
+		{
+			::DeleteObject(m_hPen);
+			m_hPen = NULL;
+		}	
+		m_hPen = hPenNew;
+		m_hOldPen = (HPEN)::SelectObject (m_hDC, m_hPen);
+	}			
+	return;
+}
+void CXUE_PenLock::SetPenColor(COLORREF crColor)
+{
+	LOGPEN logPen = {PS_SOLID, {1, 1}, RGB(0, 0, 0)};
+	HPEN hPenCurrent = (HPEN)::GetCurrentObject(m_hDC, OBJ_PEN);
+	if (hPenCurrent)
+	{
+		GetObject(hPenCurrent, sizeof(logPen), &logPen);
+		hPenCurrent = NULL;
+	}	
+	logPen.lopnColor = crColor;
+	ReplaceCurrentPen(&logPen);	
+	return;
 }
 
-//===========================================================================
-// CXBrushDC class
-//===========================================================================
+void CXUE_PenLock::SetPenStyle( INT nStyle)
+{		
+	LOGPEN logPen = {PS_SOLID, {1, 1}, RGB(0, 0, 0)};
+	HPEN hPenCurrent = (HPEN)::GetCurrentObject(m_hDC, OBJ_PEN);
+	if (hPenCurrent)
+	{
+		GetObject(hPenCurrent, sizeof(logPen), &logPen);
+		hPenCurrent = NULL;
+	}	
+	logPen.lopnStyle = nStyle;
+	ReplaceCurrentPen(&logPen);	
+	return;	
+}
 
-CBrushDC::CBrushDC(HDC hDC, COLORREF crColor)
+void CXUE_PenLock::SetPenWidth( INT nWidth)
+{
+	LOGPEN logPen = {PS_SOLID, {1, 1}, RGB(0, 0, 0)};
+	HPEN hPenCurrent = (HPEN)::GetCurrentObject(m_hDC, OBJ_PEN);
+	if (hPenCurrent)
+	{
+		GetObject(hPenCurrent, sizeof(logPen), &logPen);
+		hPenCurrent = NULL;
+	}	
+	logPen.lopnWidth.x = nWidth;
+	ReplaceCurrentPen(&logPen);	
+	return;	
+}
+
+CXUE_SolidBrushLock::CXUE_SolidBrushLock( HDC hDC, HBRUSH hBrush)
 : m_hDC (hDC)
+, m_hBrush(NULL)
+, m_hOldBrush(NULL)
+{
+	assert(hDC);
+	assert(hBrush);
+	if (hBrush)
+	{
+		m_hOldBrush = (HBRUSH)::SelectObject(m_hDC, hBrush);
+	}	
+}
+
+CXUE_SolidBrushLock::CXUE_SolidBrushLock(HDC hDC, COLORREF crColor)
+: m_hDC (hDC)
+, m_hBrush(NULL)
+, m_hOldBrush(NULL)
 {
 	VERIFY(m_hBrush = CreateSolidBrush (crColor));
-	m_hOldBrush = (HBRUSH)::SelectObject (m_hDC, m_hBrush);
-}
-
-CBrushDC::~CBrushDC()
-{
 	if (m_hBrush)
 	{
-		DeleteObject(m_hBrush);
-		m_hBrush = NULL;
-	}
-	::SelectObject(m_hDC, m_hOldBrush);
-	m_hOldBrush = NULL;
+		m_hOldBrush = (HBRUSH)::SelectObject (m_hDC, m_hBrush);
+	}	
 }
 
-void CBrushDC::Color(COLORREF crColor)
+
+CXUE_SolidBrushLock::~CXUE_SolidBrushLock()
 {
 	if (m_hOldBrush)
 	{
@@ -271,41 +306,107 @@ void CBrushDC::Color(COLORREF crColor)
 	}
 	if (m_hBrush)
 	{
-		DeleteObject(m_hBrush);
+		::DeleteObject(m_hBrush);
 		m_hBrush = NULL;
-	}
-	
-	VERIFY(m_hBrush = CreateSolidBrush(crColor));
-	m_hOldBrush = (HBRUSH)::SelectObject (m_hDC, m_hBrush);
+	}	
 }
 
-//===========================================================================
-// CXCompatibleDC class
-//===========================================================================
+void CXUE_SolidBrushLock::SetBrushColor(COLORREF crColor)
+{
+	ReplaceCurrentBrush(crColor);
+}
 
-CCompatibleDC::CCompatibleDC(HDC hDC, HBITMAP hBitmap)
+void CXUE_SolidBrushLock::ReplaceCurrentBrush( COLORREF crColor)
+{
+	HBRUSH hBrushNew = NULL;
+	VERIFY(hBrushNew = CreateSolidBrush(crColor));
+	if (hBrushNew)
+	{
+		if (m_hOldBrush)
+		{
+			::SelectObject(m_hDC, m_hOldBrush);
+			m_hOldBrush = NULL;
+		}
+		if (m_hBrush)
+		{
+			::DeleteObject(m_hBrush);
+			m_hBrush = NULL;
+		}
+		m_hBrush = hBrushNew;
+		m_hOldBrush = (HBRUSH)::SelectObject (m_hDC, m_hBrush);
+	}					
+}
+
+CXUE_BkModeLock::CXUE_BkModeLock( HDC hDC, BOOL blTRANSPARENT)
+: m_hDC(hDC)
+, m_nBkModeOld(0)
+{
+	SetBkMode(blTRANSPARENT);
+}
+
+CXUE_BkModeLock::~CXUE_BkModeLock()
+{
+	if (m_hDC)
+	{
+		if (m_nBkModeOld)
+		{
+			::SetBkMode(m_hDC, m_nBkModeOld);
+			m_nBkModeOld = 0;
+		}
+	}	
+}
+
+void CXUE_BkModeLock::SetBkMode(BOOL blTRANSPARENT)
+{
+	if (!m_hDC)
+	{
+		return;
+	}
+	if (m_nBkModeOld)
+	{
+		::SetBkMode(m_hDC, m_nBkModeOld);
+		m_nBkModeOld = 0;
+	}
+	if (blTRANSPARENT)
+	{
+		m_nBkModeOld = ::SetBkMode(m_hDC, TRANSPARENT);
+	}
+	else
+	{
+		m_nBkModeOld = ::SetBkMode(m_hDC, OPAQUE);
+	}
+	return;
+}
+
+
+
+CXUE_CompatibleDCLock::CXUE_CompatibleDCLock(HDC hDC, HBITMAP hBitmap)
 {
 	m_hMemDC = CreateCompatibleDC(hDC);
 	m_hOldBitmap = (HBITMAP)::SelectObject(m_hMemDC, hBitmap);
 }
 
-CCompatibleDC::~CCompatibleDC()
+CXUE_CompatibleDCLock::~CXUE_CompatibleDCLock()
 {
 	if (m_hOldBitmap)
 	{
 		::SelectObject(m_hMemDC, m_hOldBitmap);
 	}	
-	DeleteDC(m_hMemDC);
+	if (m_hMemDC)
+	{
+		::DeleteDC(m_hMemDC);
+		m_hMemDC = NULL;
+	}	
 }
 
-HDC CCompatibleDC::GetHDC()
+HDC CXUE_CompatibleDCLock::GetHDC()
 {
 	return m_hMemDC;
 }
 
 
 
-CXUEMemDC::CXUEMemDC(HDC hDestDC, const LPRECT prcPaint) 
+CXUE_MemDCLock::CXUE_MemDCLock(HDC hDestDC, const LPRECT prcPaint) 
 : m_hDestDC (hDestDC)
 , m_hBitmap(NULL)
 , m_hOldBitmap(NULL)
@@ -335,7 +436,7 @@ CXUEMemDC::CXUEMemDC(HDC hDestDC, const LPRECT prcPaint)
 	}
 }
 
-CXUEMemDC::~CXUEMemDC()
+CXUE_MemDCLock::~CXUE_MemDCLock()
 {
 	if (!m_hDC)
 	{
@@ -373,12 +474,12 @@ CXUEMemDC::~CXUEMemDC()
 	}	
 }
 
-HDC CXUEMemDC::GetSafeHdc()
+HDC CXUE_MemDCLock::GetSafeHdc()
 {
 	return m_hDC;
 }
 
-BOOL CXUEMemDC::SwapBuffer( )
+BOOL CXUE_MemDCLock::SwapBuffer( )
 {
 	if (!m_hDestDC)
 	{
@@ -388,7 +489,7 @@ BOOL CXUEMemDC::SwapBuffer( )
 	return TRUE;
 }
 
-BOOL CXUEMemDC::Clear( COLORREF crColor)
+BOOL CXUE_MemDCLock::Clear( COLORREF crColor)
 {
 	if (!m_hDC)
 	{
@@ -402,7 +503,7 @@ BOOL CXUEMemDC::Clear( COLORREF crColor)
 }
 
 
-HBRUSH CXUEMemDC::GetHalftoneBrush()
+HBRUSH CXUE_MemDCLock::GetHalftoneBrush()
 {
 	HBRUSH halftoneBrush = NULL;
 	WORD grayPattern[8];
@@ -419,7 +520,7 @@ HBRUSH CXUEMemDC::GetHalftoneBrush()
 	return halftoneBrush;
 }
 
-void CXUEMemDC::DrawDragRect(const LPRECT lpRect, SIZE size, const LPRECT lpRectLast, SIZE sizeLast, HBRUSH pBrush, HBRUSH pBrushLast)
+void CXUE_MemDCLock::DrawDragRect(const LPRECT lpRect, SIZE size, const LPRECT lpRectLast, SIZE sizeLast, HBRUSH pBrush, HBRUSH pBrushLast)
 {
 	if (!GetSafeHdc())
 	{
@@ -492,7 +593,7 @@ void CXUEMemDC::DrawDragRect(const LPRECT lpRect, SIZE size, const LPRECT lpRect
 	::SelectClipRgn(GetSafeHdc(), NULL);
 }
 
-void CXUEMemDC::FillSolidRect(LPCRECT lpRect, COLORREF clr)
+void CXUE_MemDCLock::FillSolidRect(LPCRECT lpRect, COLORREF clr)
 {	
 	if (!GetSafeHdc())
 	{
@@ -505,7 +606,7 @@ void CXUEMemDC::FillSolidRect(LPCRECT lpRect, COLORREF clr)
 	}	
 }
 
-void CXUEMemDC::FillSolidRect(int x, int y, int cx, int cy, COLORREF clr)
+void CXUE_MemDCLock::FillSolidRect(int x, int y, int cx, int cy, COLORREF clr)
 {
 	if (!GetSafeHdc())
 	{
@@ -516,7 +617,7 @@ void CXUEMemDC::FillSolidRect(int x, int y, int cx, int cy, COLORREF clr)
 	::ExtTextOut(GetSafeHdc(), 0, 0, ETO_OPAQUE, &rect, NULL, 0, NULL);
 }
 
-void CXUEMemDC::Draw3dRect(LPCRECT lpRect,COLORREF clrTopLeft, COLORREF clrBottomRight)
+void CXUE_MemDCLock::Draw3dRect(LPCRECT lpRect,COLORREF clrTopLeft, COLORREF clrBottomRight)
 {
 	if (lpRect)
 	{
@@ -524,10 +625,61 @@ void CXUEMemDC::Draw3dRect(LPCRECT lpRect,COLORREF clrTopLeft, COLORREF clrBotto
 	}	
 }
 
-void CXUEMemDC::Draw3dRect(int x, int y, int cx, int cy, COLORREF clrTopLeft, COLORREF clrBottomRight)
+void CXUE_MemDCLock::Draw3dRect(int x, int y, int cx, int cy, COLORREF clrTopLeft, COLORREF clrBottomRight)
 {
 	FillSolidRect(x, y, cx - 1, 1, clrTopLeft);
 	FillSolidRect(x, y, 1, cy - 1, clrTopLeft);
 	FillSolidRect(x + cx, y, -1, cy, clrBottomRight);
 	FillSolidRect(x, y + cy, cx, -1, clrBottomRight);
+}
+
+CXUE_PaintDCLock::CXUE_PaintDCLock( HWND hWnd )
+{
+	assert(::IsWindow(hWnd));
+	m_hWnd = hWnd;
+	m_hDC = ::BeginPaint(hWnd, &m_ps);
+}
+
+CXUE_PaintDCLock::~CXUE_PaintDCLock()
+{
+	assert(m_hDC);
+	assert(::IsWindow(m_hWnd));
+	::EndPaint(m_hWnd, &m_ps);
+	m_hWnd = NULL;
+	m_hDC = NULL;
+}
+
+HDC CXUE_PaintDCLock::GetSafeHdc()
+{
+	return m_hDC;
+}
+
+CXUE_SetViewportOrgExLock::CXUE_SetViewportOrgExLock( HDC hDC, POINT point)
+: m_hDC(hDC)
+{
+	m_PointOld.x = 0;
+	m_PointOld.y = 0;
+	SetViewportOrgEx(point);
+}
+
+void CXUE_SetViewportOrgExLock::SetViewportOrgEx( POINT point)
+{
+	if (!m_hDC)
+	{
+		return;
+	}
+	if (m_PointOld.x != 0 || m_PointOld.y != 0)
+	{
+		::SetViewportOrgEx(m_hDC, m_PointOld.x, m_PointOld.y, NULL);
+	}	
+	::SetViewportOrgEx(m_hDC, point.x, point.y, &m_PointOld);
+	return;
+}
+
+CXUE_SetViewportOrgExLock::~CXUE_SetViewportOrgExLock()
+{
+	if (m_PointOld.x != 0 || m_PointOld.y != 0)
+	{
+		::SetViewportOrgEx(m_hDC, m_PointOld.x, m_PointOld.y, NULL);
+	}	
 }
