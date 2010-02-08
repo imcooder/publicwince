@@ -10,97 +10,84 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 #define HWX_HDCEX_H
 
 
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
-class CBufferDC
-{
-public:
-	CBufferDC(HDC hDestDC, const RECT& rcPaint);
-	
-	virtual ~CBufferDC();	
-	HDC GetHDC();
-protected:
-	HDC     m_hDestDC;    // Handle to the destination device context.
-	HDC m_hMemDC;
-	HBITMAP m_hBitmap;     // Bitmap in memory device context
-	RECT   m_rect;       // Size of the area to paint.
-	HGDIOBJ m_hOldBitmap; // Handle to the previously selected bitmap.
-};
-
-class CXBufferDCEx
-{
-public:
-	CXBufferDCEx(HDC hDestDC, const RECT rcPaint);
-	virtual ~CXBufferDCEx();
-
-protected:
-	HDC m_hMemDC;
-	HDC     m_hDestDC;    // Handle to the destination device context.
-	HBITMAP m_bitmap;     // Bitmap in memory device context
-	RECT   m_rect;       // Size of the area to paint.
-	HGDIOBJ m_hOldBitmap; // Handle to the previously selected bitmap.
-};
-
-class CBitmapDC
+class CXUE_BitmapLock
 {
 public:	
-	CBitmapDC(HDC, HBITMAP hBitmap);  
-	virtual ~CBitmapDC();
+	CXUE_BitmapLock(HDC, HBITMAP hBitmap);  
+	virtual ~CXUE_BitmapLock();
 	void SetBitmap(HBITMAP);
 protected:
-	HDC     m_hDC;        // Device context handle.
-	HGDIOBJ m_hOldBitmap; // Handle to the previously selected bitmap.
+	HDC     m_hDC;        
+	HGDIOBJ m_hOldBitmap;
 };
 
-class CFontDC
+class CXUE_FontLock
 {
 public:
-	CFontDC(HDC, HFONT = NULL);
-	CFontDC(HDC, HFONT, COLORREF clrTextColor); 
-	virtual ~CFontDC();
-	void SetFont(HFONT);
-	void SetColor(COLORREF clrTextColor);	
-	void SetFontColor(HFONT, COLORREF clrTextColor);
-	void ReleaseFont();
-	void ReleaseColor();
-
+	CXUE_FontLock(HDC, HFONT = NULL);
+	CXUE_FontLock(HDC, HFONT, COLORREF clrTextColor); 
+	virtual ~CXUE_FontLock();	
+	void SetColor(COLORREF clrTextColor);		
+	void SetFontSize(LONG);
+	void SetFontFaceName(LPCTSTR);
+protected:
+	void ReplaceCurrentFont(const LOGFONT*);
 protected:
 	HDC m_hDC;	
-	HFONT m_hOldFont;
+	HFONT m_hFont;
+	HFONT m_hFontOld;
 	COLORREF m_crOldTextColor; 
 };
-class CPenDC
+class CXUE_PenLock
 {
 public:
-	CPenDC(HDC, HPEN);
-	CPenDC(HDC hDC, COLORREF crColor); 
-	virtual ~CPenDC();		
-	void Color(COLORREF crColor); // <combine CXPenDC::Color>
+	CXUE_PenLock(HDC, HPEN);
+	CXUE_PenLock(HDC hDC, INT fnPenStyle, INT nWidth,	COLORREF crColor); 
+	virtual ~CXUE_PenLock();		
+	void SetPenColor(COLORREF crColor); 
+	void SetPenStyle(INT);
+	void SetPenWidth(INT);
 protected:
-	HPEN m_hPen; 
+	void ReplaceCurrentPen(const LOGPEN*);
+protected:	 
 	HDC  m_hDC; 
+	HPEN m_hPen;
 	HPEN m_hOldPen; 
 };
 
-class CBrushDC
+class CXUE_SolidBrushLock
 {
 public:	
-	CBrushDC(HDC hDC, COLORREF crColor);	
-	virtual ~CBrushDC();	
-	void Color(COLORREF crColor);
+	CXUE_SolidBrushLock(HDC hDC, HBRUSH);	
+	CXUE_SolidBrushLock(HDC hDC, COLORREF crColor);	
+	virtual ~CXUE_SolidBrushLock();	
+	void SetBrushColor(COLORREF crColor);
 protected:
-	HBRUSH m_hBrush; 
+	void ReplaceCurrentBrush(COLORREF);
+protected:	
 	HDC    m_hDC;
+	HBRUSH m_hBrush; 
 	HBRUSH m_hOldBrush; 
 };
 
-class CCompatibleDC
+
+class CXUE_BkModeLock
+{
+public:	
+	CXUE_BkModeLock(HDC hDC, BOOL);	
+	virtual ~CXUE_BkModeLock();	
+	void SetBkMode(BOOL);
+protected:	
+	HDC    m_hDC;
+	LONG	 m_nBkModeOld; 	
+};
+
+
+class CXUE_CompatibleDCLock
 {
 public:		
-	CCompatibleDC(HDC, HBITMAP hBitmap); 	
-	virtual ~CCompatibleDC();
+	CXUE_CompatibleDCLock(HDC, HBITMAP hBitmap); 	
+	virtual ~CXUE_CompatibleDCLock();
 	HDC GetHDC();
 protected:
 	HBITMAP m_hOldBitmap; 
@@ -108,11 +95,11 @@ protected:
 };
 
 
-class CXUEMemDC
+class CXUE_MemDCLock
 {
 public:
-	CXUEMemDC(HDC hDestDC, const LPRECT prcPaint);
-	virtual ~CXUEMemDC();
+	CXUE_MemDCLock(HDC hDestDC, const LPRECT prcPaint);
+	virtual ~CXUE_MemDCLock();
 	HDC	GetSafeHdc();
 	BOOL Clear(COLORREF);
 	BOOL SwapBuffer();
@@ -132,7 +119,33 @@ protected:
 	HBITMAP m_hBitmap;    
 	RECT		m_rtPaint;      
 	HGDIOBJ m_hOldBitmap;
+	HRGN		m_hClipRgn;
+	HRGN		m_hClipRgnOld;
 };
+
+class CXUE_PaintDCLock
+{
+public:		
+	CXUE_PaintDCLock(HWND hWnd);
+	virtual ~CXUE_PaintDCLock();
+	HDC GetSafeHdc();
+protected:
+	HWND m_hWnd;
+	PAINTSTRUCT m_ps;
+	HDC m_hDC;
+};
+
+class CXUE_SetViewportOrgExLock
+{
+public:		
+	CXUE_SetViewportOrgExLock(HDC, POINT); 	
+	virtual ~CXUE_SetViewportOrgExLock();	
+	void SetViewportOrgEx(POINT);
+protected:	
+	HDC m_hDC;
+	POINT m_PointOld;
+};
+
 
 
 #endif //HWX_HDCEX_H

@@ -2,7 +2,7 @@
 #include "stdafx.h"
 #include "HDC.h"
 #include "Rect.h"
-BOOL FillSolidRect(HDC hDC, const RECT* pRC, COLORREF crColor)
+BOOL WINAPI FillSolidRect(HDC hDC, const RECT* pRC, COLORREF crColor)
 {
 	HBRUSH hBrush = NULL, hOldBrush = NULL;
 	if (!hDC || !pRC)
@@ -11,7 +11,7 @@ BOOL FillSolidRect(HDC hDC, const RECT* pRC, COLORREF crColor)
 	}	
 	return FillSolidRect(hDC, pRC->left, pRC->top, pRC->right - pRC->left, pRC->bottom - pRC->top, crColor);
 }
-BOOL FillSolidRect(HDC hDC, int x, int y, int cx, int cy, COLORREF clr)
+BOOL WINAPI FillSolidRect(HDC hDC, int x, int y, int cx, int cy, COLORREF clr)
 {	
 	if (!hDC)
 	{
@@ -23,31 +23,25 @@ BOOL FillSolidRect(HDC hDC, int x, int y, int cx, int cy, COLORREF clr)
 	::SetBkColor(hDC, crOldBkColor);	
 	return TRUE;
 }
-BOOL Draw3dRect(HDC hDC, LPRECT lpRect,
-								COLORREF clrTopLeft, COLORREF clrBottomRight)
+BOOL WINAPI Draw3dRect(HDC hDC, LPRECT lpRect,	COLORREF clrTopLeft, COLORREF clrBottomRight)
 {
 	if (!lpRect || !hDC)
 	{
 		return FALSE;
 	}
-	return Draw3dRect(hDC, lpRect->left, lpRect->top, lpRect->right - lpRect->left,
-		lpRect->bottom - lpRect->top, clrTopLeft, clrBottomRight);
+	return Draw3dRect(hDC, lpRect->left, lpRect->top, lpRect->right - lpRect->left,	lpRect->bottom - lpRect->top, clrTopLeft, clrBottomRight);
 }
 
-BOOL Draw3dRect(HDC hDC, int x, int y, int cx, int cy,
-								COLORREF clrTopLeft, COLORREF clrBottomRight)
+BOOL WINAPI Draw3dRect(HDC hDC, int x, int y, int cx, int cy, COLORREF clrTopLeft, COLORREF clrBottomRight)
 {
 	if (!hDC)
 	{
 		return FALSE;
 	}
-	return FillSolidRect(hDC, x, y, cx - 1, 1, clrTopLeft) 
-		&& FillSolidRect(hDC, x, y, 1, cy - 1, clrTopLeft)
-		&& FillSolidRect(hDC, x + cx, y, -1, cy, clrBottomRight)
-		&& FillSolidRect(hDC, x, y + cy, cx, -1, clrBottomRight);
+	return FillSolidRect(hDC, x, y, cx - 1, 1, clrTopLeft) 	&& FillSolidRect(hDC, x, y, 1, cy - 1, clrTopLeft)	&& FillSolidRect(hDC, x + cx, y, -1, cy, clrBottomRight)	&& FillSolidRect(hDC, x, y + cy, cx, -1, clrBottomRight);
 }
 
-BOOL MoveTo(HDC hDC, int x, int y)
+BOOL WINAPI MoveTo(HDC hDC, int x, int y)
 {
 	if (!hDC)
 	{
@@ -56,7 +50,7 @@ BOOL MoveTo(HDC hDC, int x, int y)
 	return ::MoveToEx(hDC, x, y, NULL);
 }
 
-DWORD GetFontCell( HDC hDC)
+DWORD WINAPI GetFontCell( HDC hDC)
 {
 	if (!hDC)
 	{
@@ -75,7 +69,7 @@ DWORD GetFontCell( HDC hDC)
 	return dwRet;
 }
 
-BOOL SetPoint( POINT* ptPoint, LONG x, LONG y)
+BOOL WINAPI SetPoint( POINT* ptPoint, LONG x, LONG y)
 {
 	if (!ptPoint)
 	{
@@ -86,7 +80,7 @@ BOOL SetPoint( POINT* ptPoint, LONG x, LONG y)
 	return TRUE;
 }
 
-BOOL IsPointNull( const POINT* ptPoint)
+BOOL WINAPI IsPointNull( const POINT* ptPoint)
 {
 	if (!ptPoint)
 	{
@@ -95,7 +89,7 @@ BOOL IsPointNull( const POINT* ptPoint)
 	return !ptPoint->x && !ptPoint->y;
 }
 
-COLORREF DarkenColor(COLORREF crColor, double dFactor)
+COLORREF WINAPI DarkenColor(COLORREF crColor, double dFactor)
 {
 	if (dFactor > 0.0 && dFactor <= 1.0)
 	{
