@@ -32,8 +32,8 @@ void WINAPI		ForceMessageBoxA(LPCSTR);
 void WINAPI		ForceMessageBoxW(LPCWSTR);
 void WINAPI		DebugStringW(LPCWSTR);
 void WINAPI		DebugStringA(LPCSTR);
-void WINAPI		DebugStringFileW(LPCWSTR, LPCWSTR);
-void WINAPI		DebugStringFileA(LPCSTR, LPCSTR);
+void WINAPI		XUE_DebugStringFileW(LPCWSTR, LPCWSTR);
+void WINAPI		XUE_DebugStringFileA(LPCSTR, LPCSTR);
 void WINAPI		DebugStringWindow(LPCWSTR);
 //////////////////////////////////////////////////////////////////////////
 #ifdef WINCE
@@ -88,7 +88,7 @@ protected:
 
 
 
-void WINAPI XTraceW(LPCWSTR pwhFormat, ...)
+void WINAPI XUE_TraceW(LPCWSTR pwhFormat, ...)
 { 	
 	WCHAR szBuffer[MAX_SIZE_M] = {0};	
 	/*
@@ -140,7 +140,7 @@ void WINAPI XTraceW(LPCWSTR pwhFormat, ...)
 }
 
 #ifndef WINCE
-void WINAPI XTraceA(LPCSTR pchFormat, ...)
+void WINAPI XUE_TraceA(LPCSTR pchFormat, ...)
 { 	
 	CHAR szBuffer[MAX_SIZE_M] = {0};
 
@@ -172,7 +172,7 @@ void WINAPI XTraceA(LPCSTR pchFormat, ...)
 }
 #endif
 
-DLLXEXPORT void WINAPI XTraceExW( BOOL bCondition, LPCWSTR pwhFormat, ... )
+DLLXEXPORT void WINAPI XUE_TraceExW( BOOL bCondition, LPCWSTR pwhFormat, ... )
 {
 	if (!bCondition)
 	{
@@ -219,7 +219,7 @@ DLLXEXPORT void WINAPI XTraceExW( BOOL bCondition, LPCWSTR pwhFormat, ... )
 
 }
 #ifndef WINCE
-DLLXEXPORT void WINAPI XTraceExA( BOOL bCondition, LPCSTR pchFormat, ... )
+DLLXEXPORT void WINAPI XUE_TraceExA( BOOL bCondition, LPCSTR pchFormat, ... )
 {
 	if (bCondition)
 	{
@@ -256,7 +256,7 @@ DLLXEXPORT void WINAPI XTraceExA( BOOL bCondition, LPCSTR pchFormat, ... )
 #endif
 
 
-void WINAPI XForceTraceW(LPCWSTR pwhFormat, ...)
+void WINAPI XUE_ForceTraceW(LPCWSTR pwhFormat, ...)
 { 	
 	WCHAR szBuffer[MAX_SIZE_M] = {0};
 #ifdef WINCE
@@ -299,7 +299,7 @@ void WINAPI XForceTraceW(LPCWSTR pwhFormat, ...)
 
 }
 #ifndef WINCE
-void WINAPI XForceTraceA(LPCSTR pchFormat, ...)
+void WINAPI XUE_ForceTraceA(LPCSTR pchFormat, ...)
 { 		
 	CHAR szBuffer[MAX_SIZE_M] = {0};
 	LPSTR pchBuffer = NULL;	
@@ -346,7 +346,7 @@ void WINAPI ForceMessageBoxW(LPCWSTR pszMsg)
 	MessageBoxW(GetActiveWindow(), pszMsg, szTitle, MB_OK);
 }
 
-void WINAPI HWRemoteTraceW( LPCWSTR pwhFormat, ... )
+void WINAPI XUE_RemoteTraceW( LPCWSTR pwhFormat, ... )
 {
 	WCHAR szBuffer[MAX_SIZE_M] = {0};
 	va_list argList;
@@ -381,7 +381,7 @@ void WINAPI DebugStringW( LPCWSTR pszDebugInfo)
 	}
 #ifdef HWFORCEFILE
 	{
-		DebugStringFileW(HWFILE_PATH_U, pszDebugInfo);
+		XUE_DebugStringFileW(HWFILE_PATH_U, pszDebugInfo);
 	}
 #else
 	{
@@ -402,7 +402,7 @@ void WINAPI DebugStringA( LPCSTR pszDebugInfo)
 	}
 #ifdef HWFORCEFILE
 	{
-		DebugStringFileA(HWFILE_PATH, pszDebugInfo);
+		XUE_DebugStringFileA(HWFILE_PATH, pszDebugInfo);
 	}
 #else
 	{
@@ -413,7 +413,7 @@ void WINAPI DebugStringA( LPCSTR pszDebugInfo)
 #endif
 
 
-void WINAPI DebugStringFileW(LPCWSTR pszFile, LPCWSTR pszDebugInfo)
+void WINAPI XUE_DebugStringFileW(LPCWSTR pszFile, LPCWSTR pszDebugInfo)
 {
 	CHAR szString[MAX_SIZE_M] = {0};
 	CHAR szFilePath[MAX_PATH] = {0};
@@ -427,7 +427,7 @@ void WINAPI DebugStringFileW(LPCWSTR pszFile, LPCWSTR pszDebugInfo)
 	if (dwChar + 5 < _countof(szString))
 	{
 		wcstombs(szString, pszDebugInfo,_countof(szString));
-		DebugStringFileA(szFilePath,  szString);
+		XUE_DebugStringFileA(szFilePath,  szString);
 	}
 	else
 	{
@@ -435,11 +435,11 @@ void WINAPI DebugStringFileW(LPCWSTR pszFile, LPCWSTR pszDebugInfo)
 		if (pAnsiString)
 		{
 			wcstombs(pAnsiString, pszDebugInfo, dwChar + 1);
-			DebugStringFileA(szFilePath,  pAnsiString);
+			XUE_DebugStringFileA(szFilePath,  pAnsiString);
 		}		
 	} 
 }
-void WINAPI DebugStringFileA(LPCSTR pszFile, LPCSTR pszDebugInfo)
+void WINAPI XUE_DebugStringFileA(LPCSTR pszFile, LPCSTR pszDebugInfo)
 {
 	if (!pszDebugInfo)
 	{
