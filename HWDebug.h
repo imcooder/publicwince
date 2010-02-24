@@ -32,7 +32,7 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 #define FORCEASSERT(expr) \
 	if (!(expr))  \
 {      \
-	XForceTraceW(L"%s In Files %s Line:%d", _CRT_WIDE(#expr), _CRT_WIDE(__FILE__), __LINE__);  \
+	XUE_ForceTraceW(L"%s In Files %s Line:%d", _CRT_WIDE(#expr), _CRT_WIDE(__FILE__), __LINE__);  \
 	DebugBreak();   \
 }
 #endif
@@ -41,7 +41,7 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 #define DEBUG_ERROR(expr) \
 	if (0)  \
 {      \
-	XForceTraceW(TEXT("%s In Files %s Line:%d"), expr, _CRT_WIDE(__FILE__), __LINE__);  \
+	XUE_ForceTraceW(TEXT("%s In Files %s Line:%d"), expr, _CRT_WIDE(__FILE__), __LINE__);  \
 	DebugBreak();   \
 }
 #endif
@@ -70,6 +70,15 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 #endif
 #endif
 
+#ifndef HWFORCETRACE
+#if defined(HWDEBUG)
+#define HWFORCETRACE		FORCETRACE
+#else 
+#define HWFORCETRACE		__noop
+#endif
+#endif
+
+
 #ifndef HWREMOTETRACE
 #if defined(HWDEBUG)
 #define HWREMOTETRACE		REMOTETRACE
@@ -80,22 +89,22 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 
 
 #ifdef UNICODE
-#define XTrace		XTraceW
+#define XTrace		XUE_TraceW
 #else 
-#define XTrace		XTraceA
+#define XTrace		XUE_TraceA
 #endif
 
 #ifdef UNICODE
-#define XTraceEx		XTraceExW
+#define XTraceEx		XUE_TraceExW
 #else 
-#define XTrace			XTraceExA
+#define XTrace			XUE_TraceExA
 #endif
 
 #ifdef UNICODE
-#define FORCETRACE		XForceTraceW
-#define REMOTETRACE		HWRemoteTraceW
+#define FORCETRACE		XUE_ForceTraceW
+#define REMOTETRACE		XUE_RemoteTraceW
 #else 
-#define FORCETRACE		XForceTraceA
+#define FORCETRACE		XUE_ForceTraceA
 #define REMOTETRACE		HWRemoteTraceA
 #endif
 
@@ -106,15 +115,15 @@ extern "C"
 {
 #endif
 	//释放内存
-	DLLXEXPORT void WINAPI		XTraceW(LPCWSTR, ...);	
-	DLLXEXPORT void WINAPI		XTraceA(LPCSTR , ...);
-	DLLXEXPORT void WINAPI		XTraceExW(BOOL, LPCWSTR, ...);	
-	DLLXEXPORT void WINAPI		XTraceExA(BOOL, LPCSTR , ...);
-	DLLXEXPORT void WINAPI	  XForceTraceW(LPCWSTR, ...);	
-	DLLXEXPORT void WINAPI		XForceTraceA(LPCSTR , ...);
-	DLLXEXPORT void WINAPI		HWRemoteTraceW(LPCWSTR, ...);
-	DLLXEXPORT void WINAPI		DebugStringFileA(LPCSTR, LPCSTR);
-	DLLXEXPORT void WINAPI		DebugStringFileW(LPCWSTR, LPCWSTR);
+	DLLXEXPORT void WINAPI		XUE_TraceW(LPCWSTR, ...);	
+	DLLXEXPORT void WINAPI		XUE_TraceA(LPCSTR , ...);
+	DLLXEXPORT void WINAPI		XUE_TraceExW(BOOL, LPCWSTR, ...);	
+	DLLXEXPORT void WINAPI		XUE_TraceExA(BOOL, LPCSTR , ...);
+	DLLXEXPORT void WINAPI	  XUE_ForceTraceW(LPCWSTR, ...);	
+	DLLXEXPORT void WINAPI		XUE_ForceTraceA(LPCSTR , ...);
+	DLLXEXPORT void WINAPI		XUE_RemoteTraceW(LPCWSTR, ...);
+	DLLXEXPORT void WINAPI		XUE_DebugStringFileA(LPCSTR, LPCSTR);
+	DLLXEXPORT void WINAPI		XUE_DebugStringFileW(LPCWSTR, LPCWSTR);
 #ifdef __cplusplus
 }
 #endif
