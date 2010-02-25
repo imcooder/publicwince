@@ -16,16 +16,23 @@ _Window::~_Window()
 }
 
 BOOL _Window::IsVisible() const
-{
-	HWTRACE(TEXT("_Window::IsVisible %d %d\n"), GetSafeHwnd(), ::IsWindowVisible(GetSafeHwnd()));	
+{		
 	return ::IsWindowVisible(GetSafeHwnd());
 }
 
+BOOL _Window::IsVisible(HWND hWnd)
+{
+	return ::IsWindowVisible(hWnd);
+}
 BOOL _Window::IsWindow() const
 {
 	return ::IsWindow(GetSafeHwnd());
 }
 
+BOOL _Window::IsWindow( HWND hWnd)
+{
+	return ::IsWindow(hWnd);
+}
 
 BOOL _Window::UpdateWindow()
 {
@@ -49,18 +56,23 @@ BOOL _Window::ShowWindow( DWORD dwCmdShow)
 {
 	if (IsWindow())
 	{
-		return ::ShowWindow(m_hWnd, dwCmdShow);
+		return ::ShowWindow(GetSafeHwnd(), dwCmdShow);
 	}	
 	else
 	{
 		return FALSE;
 	}
 }
+
+BOOL _Window::ShowWindow( HWND hWnd, DWORD dwCmdShow)
+{
+	return ::ShowWindow(hWnd, dwCmdShow);
+}
 BOOL _Window::SetWindowPos(HWND hWndInsertAfter, int X, int Y, int cx,int cy,UINT uFlags)
 {
 	if (IsWindow())
 	{
-		return ::SetWindowPos(m_hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags);
+		return ::SetWindowPos(GetSafeHwnd(), hWndInsertAfter, X, Y, cx, cy, uFlags);
 	}
 	else
 	{
@@ -68,6 +80,10 @@ BOOL _Window::SetWindowPos(HWND hWndInsertAfter, int X, int Y, int cx,int cy,UIN
 	}
 }
 
+BOOL _Window::SetWindowPos(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx,int cy,UINT uFlags )
+{
+	return ::SetWindowPos(hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags);
+}
 BOOL _Window::InvalidateRect( CONST RECT* lpRect,BOOL bErase )
 {
 	if (IsWindow())
@@ -84,7 +100,7 @@ BOOL _Window::MoveWindow( int X,int Y,int nWidth,int nHeight,BOOL bRepaint )
 {
 	if (IsWindow())
 	{
-		return ::MoveWindow(m_hWnd, X, Y, nWidth, nHeight, bRepaint);
+		return MoveWindow(GetSafeHwnd(), X, Y, nWidth, nHeight, bRepaint);
 	} 
 	else
 	{
@@ -92,6 +108,10 @@ BOOL _Window::MoveWindow( int X,int Y,int nWidth,int nHeight,BOOL bRepaint )
 	}
 }
 
+BOOL _Window::MoveWindow( HWND hWnd, int X,int Y,int nWidth,int nHeight,BOOL bRepaint)
+{
+	return ::MoveWindow(hWnd, X, Y, nWidth, nHeight, bRepaint);
+}
 BOOL _Window::ResizeWindow( SIZE sz)
 {
 	return SetWindowPos(NULL, 0, 0, sz.cx, sz.cy,	SWP_NOZORDER | SWP_NOMOVE);
@@ -134,7 +154,17 @@ BOOL _Window::GetWindowRect( RECT* pRect) const
 	{
 		return FALSE;
 	}
-	return ::GetWindowRect(m_hWnd, pRect);
+	return ::GetWindowRect(GetSafeHwnd(), pRect);
+}
+
+BOOL _Window::GetWindowRect(HWND hWnd, RECT* pRect)
+{
+	if (!pRect || !::IsWindow(hWnd))
+	{
+		return FALSE;
+	}
+	ZeroMemory(pRect, sizeof(pRect));	
+	return ::GetWindowRect(hWnd, pRect);
 }
 BOOL _Window::GetClientRect( RECT* pRect) const
 {
@@ -147,9 +177,18 @@ BOOL _Window::GetClientRect( RECT* pRect) const
 	{
 		return FALSE;
 	}
-	return ::GetClientRect(m_hWnd, pRect);
+	return ::GetClientRect(GetSafeHwnd(), pRect);
 }
 
+BOOL _Window::GetClientRect( HWND hWnd, RECT* pRect)
+{
+	if (!pRect || !::IsWindow(hWnd))
+	{
+		return FALSE;
+	}
+	ZeroMemory(pRect, sizeof(pRect));	
+	return ::GetClientRect(hWnd, pRect);
+}
 void _Window::DestroyWindow( void )
 {	
 	::DestroyWindow(GetSafeHwnd());
@@ -159,6 +198,10 @@ void _Window::DestroyWindow( void )
 
 BOOL _Window::SetWindowText( LPCTSTR pszTitle)
 {
+	if (!pszTitle)
+	{
+		return FALSE;
+	}
 	if (IsWindow())
 	{
 		return ::SetWindowText(GetSafeHwnd(), pszTitle);
@@ -166,6 +209,18 @@ BOOL _Window::SetWindowText( LPCTSTR pszTitle)
 	return FALSE;
 }
 
+BOOL _Window::SetWindowText(HWND hWnd, LPCTSTR pszTitle)
+{
+	if (!pszTitle)
+	{
+		return FALSE;
+	}
+	if (::IsWindow(hWnd))
+	{
+		return ::SetWindowText(hWnd, pszTitle);
+	}
+	return FALSE;
+}
 BOOL _Window::EnableWindow( BOOL bEnable )
 {
 	if (IsWindow())
@@ -175,6 +230,14 @@ BOOL _Window::EnableWindow( BOOL bEnable )
 	return FALSE;	
 }
 
+BOOL _Window::EnableWindow(HWND hWnd, BOOL bEnable)
+{
+	if (::IsWindow(hWnd))
+	{
+		return ::EnableWindow(hWnd, bEnable);
+	}
+	return FALSE;	
+}
 
 
 BOOL _Window::ModifyStyle(DWORD dwRemove, DWORD dwAdd, UINT nFlags)
@@ -220,4 +283,31 @@ BOOL _Window::ModifyStyleEx( DWORD dwRemove, DWORD dwAdd, UINT nFlags )
 HINSTANCE _Window::GetInstance() const
 {
 	return m_hInstance;
+}
+
+LONG _Window::SetID( LONG nID)
+{
+	return SetID(GetSafeHwnd(), nID);
+}
+
+LONG _Window::SetID( HWND hWnd, LONG nID)
+{
+	if (!IsWindow(hWnd))
+	{
+		return 0;
+	}
+	return SetWindowLong(hWnd, GWL_ID, nID);
+}
+LONG _Window::GetID() const
+{
+	return GetID(GetSafeHwnd());
+}
+
+LONG _Window::GetID(HWND hWnd)
+{
+	if (!IsWindow(hWnd))
+	{
+		return 0;
+	}
+	return GetWindowLong(hWnd, GWL_ID);	
 }

@@ -222,10 +222,8 @@ typedef enum
 #endif
 
 #ifndef _countof
-//#define _countof
 #define _countof(_Array) (sizeof(_Array) / sizeof(*_Array))
 #endif
-
 
 #define INRANGE(low, Num, High) (((low) <= (Num)) && ((Num) <= (High)))
 //	
@@ -485,6 +483,14 @@ typedef struct tagCnd8
 	::ReleaseDC((hWnd), (hDC));\
 	(hDC) = NULL;\
 } 
+#undef SAFE_RELEASE_OBJECT
+#define SAFE_RELEASE_OBJECT(s)  \
+	if ((s) != NULL)\
+{\
+		(s)->Release();\
+		(s) = NULL;\
+}
+
 //////////////////////////////////////////////////////////////////////////
 #ifndef SAFE_SELECT_PEN
 #define SAFE_SELECT_PEN(hDC, hPen)				((hDC) ? ((HPEN)::SelectObject((hDC), (HGDIOBJ)(HPEN)(hPen))) : (NULL))
