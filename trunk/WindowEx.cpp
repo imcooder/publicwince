@@ -101,3 +101,21 @@ BOOL WINAPI XUE_ModifyStyleEx(HWND hWnd, DWORD dwRemove, DWORD dwAdd, UINT nFlag
 	}	
 	return TRUE;
 }
+
+DLLXEXPORT LONG WINAPI XUE_GetWindowID( HWND hWnd)
+{
+	if (!::IsWindow(hWnd))
+	{
+		return -1;
+	}
+	GetWindowLong(hWnd, GWL_ID);
+}
+
+DLLXEXPORT LONG WINAPI XUE_SetWindowID( HWND hWnd, LONG nID)
+{
+	if (!::IsWindow(hWnd))
+	{
+		return -1;
+	}
+	return SetWindowLong(hWnd, GWL_ID, nID);
+}

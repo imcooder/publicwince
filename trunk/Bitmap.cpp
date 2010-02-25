@@ -44,3 +44,23 @@ HBITMAP WINAPI XUE_LoadBitmapFromFileA( LPCSTR pszFile)
 	mbstowcs(szPath, pszFile, strlen(pszFile));
 	return XUE_LoadBitmapFromFileW(szPath);
 }
+
+void* WINAPI XUE_LoadResource(HMODULE hModule, LPCTSTR lpName, LPCTSTR lpType,  LPDWORD pvSize)
+{	
+	HRSRC hRes = NULL;
+	DWORD dwSize = 0;
+	HGLOBAL hData = NULL;
+	void*  pvRes = NULL;	
+	hRes = FindResource(hModule, lpName, lpType);
+	if (hRes)
+	{
+		dwSize = SizeofResource(hModule, hRes);
+		hData = LoadResource(hModule, hRes);
+		pvRes = (void*)LockResource(hData);
+	}
+	if (pvSize)
+	{
+		*pvSize = dwSize;
+	}
+	return pvRes;	
+}

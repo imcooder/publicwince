@@ -156,8 +156,8 @@ void WINAPI InflateRect( LPRECT lpRect, int x, int y, int xx, int yy)
 	{		
 		return;
 	}
-	lpRect->left += x;
-	lpRect->top += y;
+	lpRect->left -= x;
+	lpRect->top -= y;
 	lpRect->right += xx;
 	lpRect->bottom += yy;
 }
