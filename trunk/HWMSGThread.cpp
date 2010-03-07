@@ -88,7 +88,7 @@ LRESULT CHWMSGThread::_ThreadProc()
 
 BOOL CHWMSGThread::Terminate()
 {				
-	HWTRACE(TEXT("CHWThread::Terminate Begin\n"));
+	HWTRACE(TEXT("CHWMSGThread::Terminate Begin\n"));
 	if (m_hThread)
 	{
 		DWORD dwExitCode; 
@@ -103,7 +103,7 @@ BOOL CHWMSGThread::Terminate()
 				{
 					SetLastError(0);
 					BOOL blValue = TerminateThread(m_hThread, 0);
-					HWTRACEEX(!blValue, TEXT("TerminateThread Failed %d\n"), GetLastError());
+					HWTRACEEX(!blValue, TEXT("CHWMSGThread::TerminateThread Failed %d\n"), GetLastError());
 					if (blValue)
 					{
 						WaitForSingleObject(m_hThread, INFINITE);		
@@ -125,7 +125,7 @@ BOOL CHWMSGThread::Terminate()
 		SAFE_CLOSE_HANDLE(m_hThread);		
 		m_dwThreadID = 0;
 	}	
-	HWTRACE(TEXT("CHWThread::Terminate End\n"));
+	HWTRACE(TEXT("CHWMSGThread::Terminate End\n"));
 	return TRUE;	
 }
 

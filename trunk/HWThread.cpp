@@ -50,7 +50,7 @@ BOOL CHWThread::Terminate()
 				{
 					SetLastError(0);
 					BOOL blValue = TerminateThread(m_hThread, 0);
-					HWTRACEEX(!blValue, TEXT("TerminateThread Failed %d\n"), GetLastError());
+					HWTRACEEX(!blValue, TEXT("CHWThread::TerminateThread Failed %d\n"), GetLastError());
 					if (blValue)
 					{
 						WaitForSingleObject(m_hThread, INFINITE);		
