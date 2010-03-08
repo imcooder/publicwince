@@ -108,7 +108,7 @@ DLLXEXPORT LONG WINAPI XUE_GetWindowID( HWND hWnd)
 	{
 		return -1;
 	}
-	GetWindowLong(hWnd, GWL_ID);
+	return ::GetWindowLong(hWnd, GWL_ID);
 }
 
 DLLXEXPORT LONG WINAPI XUE_SetWindowID( HWND hWnd, LONG nID)
@@ -117,5 +117,5 @@ DLLXEXPORT LONG WINAPI XUE_SetWindowID( HWND hWnd, LONG nID)
 	{
 		return -1;
 	}
-	return SetWindowLong(hWnd, GWL_ID, nID);
+	return ::SetWindowLong(hWnd, GWL_ID, nID);
 }
