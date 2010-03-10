@@ -617,22 +617,8 @@ void WINAPI Helper_StrUpperW(LPWSTR pszString)
 	if (pszString[0])
 	{
 		return;
-	}
-	 
-#if _MSC_VER >= 1400
-#ifdef WINCE
-	{
-		wcsupr(pszString);
-	}
-#else
-	{
-		LONG nLenght = (LONG)wcslen(pszString);
-		wcsupr_s(pszString, nLenght);
-	}
-#endif	
-#else
+	}	 
 	wcsupr(pszString);
-#endif
 }
 
 void WINAPI Helper_StrUpperA(LPSTR pszString)

@@ -1,17 +1,20 @@
-
 #include "stdafx.h"
 #include "HWDevice.h"
 #include "Rect.h"
-#include <projects.h>
-#pragma comment(lib, "note_prj.lib")
+#include <Iphlpapi.h>
 
-#ifdef WINCE
+#ifdef UNDER_CE
 #include <pm.h>
+#include "tapi.h"
+#include "pkfuncs.h"
 #endif
+
+#define DEVICEID_APPLICATION_DATA            TEXT("www.hwpen.net")
+
 
 void WINAPI BacklightForce( BOOL blOpen)
 {
-#ifdef WINCE
+#ifdef UNDER_CE
 	if (blOpen)
 	{
 		SetDevicePower(TEXT("BKL1:"), (DWORD)(0x00000001), D0); 			
@@ -25,7 +28,7 @@ void WINAPI BacklightForce( BOOL blOpen)
 
 void WINAPI BacklightLight()
 {
-#ifdef WINCE
+#ifdef UNDER_CE
 	HKEY hKey = NULL;
 	HANDLE hEventWakeup = NULL;
 	TCHAR szEventName[MAX_NAME] = {0};
@@ -55,7 +58,553 @@ void WINAPI BacklightLight()
 	return;	
 }
 
-#ifdef WINCE
+#define TAPI_API_LOW_VERSION    0x00020000
+#define TAPI_API_HIGH_VERSION   0x00020000
+#define EXT_API_LOW_VERSION     0x00010000
+#define EXT_API_HIGH_VERSION    0x00010000
+
+#ifndef _ExTAPI_H_
+
+typedef struct linegeneralinfo_tag {
+	DWORD dwTotalSize;
+	DWORD dwNeededSize;
+	DWORD dwUsedSize;
+	DWORD dwManufacturerSize;
+	DWORD dwManufacturerOffset;
+	DWORD dwModelSize;
+	DWORD dwModelOffset;
+	DWORD dwRevisionSize;
+	DWORD dwRevisionOffset;
+	DWORD dwSerialNumberSize;
+	DWORD dwSerialNumberOffset;
+	DWORD dwSubscriberNumberSize;
+	DWORD dwSubscriberNumberOffset;
+} LINEGENERALINFO, *LPLINEGENERALINFO;
+
+
+#endif
+
+#ifndef CELLTSP_PROVIDERINFO_STRING
+#define CELLTSP_PROVIDERINFO_STRING (L"Cellular TAPI Service Provider")
+#endif
+#ifndef CELLTSP_LINENAME_STRING
+#define CELLTSP_LINENAME_STRING (L"Cellular Line")
+#endif
+#ifndef CELLTSP_PHONENAME_STRING
+#define CELLTSP_PHONENAME_STRING (L"Cellular Phone")
+#endif
+//////////////////////////////////////////////////////////////////////////
+//CellCore.dll
+typedef LONG (WINAPI*LPlineGetGeneralInfo)(HLINE, LPLINEGENERALINFO);
+//CoreDll.dll
+typedef LONG (WINAPI*LPlineShutdown)(HLINEAPP);
+typedef LONG (WINAPI*LPlineClose)(HLINE);
+typedef LONG (WINAPI*LPlineOpen)(HLINEAPP, DWORD, LPHLINE, DWORD, DWORD, DWORD, DWORD, DWORD, LPLINECALLPARAMS const);
+typedef LONG (WINAPI*LPlineGetDevCaps)(HLINEAPP, DWORD, DWORD, DWORD, LPLINEDEVCAPS);
+typedef LONG (WINAPI*LPlineNegotiateAPIVersion)(HLINEAPP, DWORD, DWORD, DWORD, LPDWORD, LPLINEEXTENSIONID);
+typedef LONG (WINAPI *LPlineNegotiateExtVersion)(HLINEAPP, DWORD, DWORD, DWORD, DWORD, LPDWORD);
+typedef LONG (WINAPI *LPlineInitializeEx)(LPHLINEAPP, HINSTANCE,LINECALLBACK,LPCWSTR,LPDWORD,LPDWORD,LPLINEINITIALIZEEXPARAMS);
+typedef HRESULT (WINAPI*LPGetDeviceUniqueID)(LPBYTE , DWORD, DWORD, LPBYTE, DWORD *);
+
+//////////////////////////////////////////////////////////////////////////
+#define GETDEVICEUNIQUEID_V1                1
+#define GETDEVICEUNIQUEID_V1_MIN_APPDATA    8
+#define GETDEVICEUNIQUEID_V1_OUTPUT         20
+
+LONG WINAPI XUE_GetIMEI(LPWSTR pszIMEI, LONG nCount)
+{
+	TCHAR szIMEI[256] = {0};
+	DWORD dwNumDevs;
+	DWORD dwAPIVersion = TAPI_API_HIGH_VERSION;
+	LINEINITIALIZEEXPARAMS liep;
+	HLINEAPP hLineApp = 0;
+	HLINE hLine = 0;
+	DWORD dwExtVersion;	
+	BOOL bRetVal = FALSE;
+	LPBYTE pLineGeneralInfoBytes = NULL;
+	DWORD dwTAPILineDeviceID;
+	const DWORD dwMediaMode = LINEMEDIAMODE_DATAMODEM | LINEMEDIAMODE_INTERACTIVEVOICE;
+	LINEGENERALINFO lviGeneralInfo;
+	LPLINEGENERALINFO plviGeneralInfo;
+	LPTSTR tsManufacturer, tsModel, tsRevision, tsSerialNumber, tsSubscriberNumber;
+	TCHAR szUnavailable[36] = {0}; 
+
+	//////////////////////////////////////////////////////////////////////////
+	LPlineGetGeneralInfo plineGetGeneralInfo = NULL;
+	LPlineShutdown			 pLineShutdown = NULL;
+	LPlineClose					 pLineClose = NULL;
+	LPlineOpen					 pLineOpen = NULL;
+	LPlineNegotiateExtVersion pLineNegotiateExtVersion = NULL;
+	LPlineInitializeEx	 pLineInitializeEx = NULL;
+	LPlineGetDevCaps	   plineGetDevCaps;
+	LPlineNegotiateAPIVersion	plineNegotiateAPIVersion = NULL;
+	HMODULE hModuleCoreDll = LoadLibrary(TEXT("CoreDll.dll"));
+	LONG nFailedFun = 0;
+	if (!hModuleCoreDll)
+	{
+		goto cleanup;
+	}
+	pLineShutdown = (LPlineShutdown)GetProcAddress(hModuleCoreDll, TEXT("lineShutdown"));
+	if (!pLineShutdown)
+	{
+		nFailedFun ++;
+	}
+	pLineClose = (LPlineClose)GetProcAddress(hModuleCoreDll, TEXT("lineClose"));
+	if (!pLineClose)
+	{
+		nFailedFun ++;
+	}
+	pLineOpen = (LPlineOpen)GetProcAddress(hModuleCoreDll, TEXT("lineOpen"));
+	if (!pLineOpen)
+	{
+		nFailedFun ++;
+	}
+	pLineNegotiateExtVersion = (LPlineNegotiateExtVersion)GetProcAddress(hModuleCoreDll, TEXT("lineNegotiateExtVersion"));
+	if (!pLineNegotiateExtVersion)
+	{
+		nFailedFun ++;
+	}
+	pLineInitializeEx = (LPlineInitializeEx)GetProcAddress(hModuleCoreDll, TEXT("lineInitializeEx"));
+	if (!pLineInitializeEx)
+	{
+		nFailedFun ++;
+	}
+	plineNegotiateAPIVersion = (LPlineNegotiateAPIVersion)GetProcAddress(hModuleCoreDll, TEXT("lineNegotiateAPIVersion"));
+	if (!plineNegotiateAPIVersion)
+	{
+		nFailedFun ++;
+	}
+	plineGetDevCaps = (LPlineGetDevCaps)GetProcAddress(hModuleCoreDll, TEXT("lineGetDevCaps"));
+	if (!plineGetDevCaps)
+	{
+		nFailedFun ++;
+	}
+	//CellCore.Dll
+	HMODULE hModuleCellCore = LoadLibrary(TEXT("CellCore.dll"));
+	if (!hModuleCellCore)
+	{
+		goto cleanup;
+	}
+	plineGetGeneralInfo = (LPlineGetGeneralInfo)GetProcAddress(hModuleCellCore, TEXT("lineGetGeneralInfo"));
+	if (!plineGetGeneralInfo)
+	{
+		nFailedFun ++;
+	}
+
+
+
+	// set the line init params
+	liep.dwTotalSize = sizeof(liep);
+	liep.dwOptions = LINEINITIALIZEEXOPTION_USEEVENT;
+
+	if (pLineInitializeEx(&hLineApp, 0, 0, DEVICEID_APPLICATION_DATA, &dwNumDevs, &dwAPIVersion, &liep)) 
+	{
+		goto cleanup;
+	}
+
+	// get the device ID
+	dwTAPILineDeviceID = 0xffffffff;
+	for(DWORD dwCurrentDevID = 0 ; dwCurrentDevID < dwNumDevs ; dwCurrentDevID ++)
+	{
+		DWORD dwAPIVersion;
+		LINEEXTENSIONID LineExtensionID;
+		if(0 == plineNegotiateAPIVersion(hLineApp, dwCurrentDevID, TAPI_API_LOW_VERSION, TAPI_API_HIGH_VERSION, &dwAPIVersion, &LineExtensionID)) 
+		{
+			LINEDEVCAPS LineDevCaps;
+			LineDevCaps.dwTotalSize = sizeof(LineDevCaps);
+			if(0 == plineGetDevCaps(hLineApp, dwCurrentDevID, dwAPIVersion, 0, &LineDevCaps)) 
+			{
+				BYTE* pLineDevCapsBytes = new BYTE[LineDevCaps.dwNeededSize];
+				if(0 != pLineDevCapsBytes) 
+				{
+					LINEDEVCAPS* pLineDevCaps = (LINEDEVCAPS*)pLineDevCapsBytes;
+					pLineDevCaps->dwTotalSize = LineDevCaps.dwNeededSize;
+					if(0 == plineGetDevCaps(hLineApp, dwCurrentDevID, dwAPIVersion, 0, pLineDevCaps)) 
+					{
+						if(0 == _tcscmp((TCHAR*)((BYTE*)pLineDevCaps+pLineDevCaps->dwLineNameOffset), CELLTSP_LINENAME_STRING)) 
+						{
+							dwTAPILineDeviceID = dwCurrentDevID;
+							break;
+						}
+					}
+					delete[]  pLineDevCapsBytes;
+					pLineDevCapsBytes = NULL;
+				}
+			}
+		}
+	}		
+	
+	// error getting the line device ID?
+	if (0xffffffff == dwTAPILineDeviceID) 
+	{
+		goto cleanup;
+	}
+
+	// now try and open the line
+	if(pLineOpen(hLineApp, dwTAPILineDeviceID, &hLine, dwAPIVersion, 0, 0, LINECALLPRIVILEGE_OWNER, dwMediaMode, 0)) 
+	{
+		goto cleanup;
+	}
+
+	// set up ExTAPI
+	if (pLineNegotiateExtVersion(hLineApp, dwTAPILineDeviceID, dwAPIVersion, EXT_API_LOW_VERSION, EXT_API_HIGH_VERSION, &dwExtVersion)) 
+	{
+		goto cleanup;
+	}
+
+	// try to get the general info
+	lviGeneralInfo.dwTotalSize = sizeof(lviGeneralInfo);
+
+	// step 1: find out how much space we need
+	if (plineGetGeneralInfo(hLine, &lviGeneralInfo)) 
+	{
+		goto cleanup;
+	}
+
+	// step 2: malloc space for all the info we need
+	pLineGeneralInfoBytes = new BYTE[lviGeneralInfo.dwNeededSize];
+	plviGeneralInfo = (LPLINEGENERALINFO)pLineGeneralInfoBytes;
+
+	// step 3: call lGGI again with the appropriately sized buffer
+	if(NULL != pLineGeneralInfoBytes) 
+	{
+		plviGeneralInfo->dwTotalSize = lviGeneralInfo.dwNeededSize;
+		if (plineGetGeneralInfo(hLine, plviGeneralInfo)) 
+		{
+			goto cleanup;
+		}
+	} 
+	else 
+	{
+		goto cleanup;
+	}
+
+	// step 4: cast all the arguments to strings
+	if(0 < plviGeneralInfo->dwManufacturerSize)
+	{ 
+		tsManufacturer = (WCHAR*)(((BYTE*)plviGeneralInfo)+plviGeneralInfo->dwManufacturerOffset);
+	}
+	else
+	{
+		tsManufacturer = szUnavailable;
+	}
+
+	if(0 < plviGeneralInfo->dwModelSize)
+	{ 
+		tsModel = (WCHAR*)(((BYTE*)plviGeneralInfo)+plviGeneralInfo->dwModelOffset);
+	}
+	else
+	{
+		tsModel = szUnavailable;
+	}
+
+	if(0 < plviGeneralInfo->dwRevisionSize)
+	{
+		tsRevision = (WCHAR*)(((BYTE*)plviGeneralInfo)+plviGeneralInfo->dwRevisionOffset);
+	}
+	else
+	{
+		tsRevision = szUnavailable;
+	}
+
+	if(0 < plviGeneralInfo->dwSerialNumberSize)
+	{
+		tsSerialNumber = (WCHAR*)(((BYTE*)plviGeneralInfo)+plviGeneralInfo->dwSerialNumberOffset);
+	}
+	else
+	{
+		tsSerialNumber = szUnavailable;
+	}
+
+	if(0 < plviGeneralInfo->dwSubscriberNumberSize)
+	{
+		tsSubscriberNumber = (WCHAR*)(((BYTE*)plviGeneralInfo)+plviGeneralInfo->dwSubscriberNumberOffset);
+	}
+	else
+	{
+		tsSubscriberNumber = szUnavailable;
+	}
+	// create the message box string.
+	// 
+	StringCchCopy(szIMEI, _countof(szIMEI), tsSerialNumber);
+
+	bRetVal = TRUE;
+
+cleanup:
+	if (pLineGeneralInfoBytes) 
+	{
+		delete [] pLineGeneralInfoBytes;
+		pLineGeneralInfoBytes = NULL;
+	}
+	if (hLine)
+	{
+		pLineClose(hLine);
+		hLine = NULL;
+	}
+	if (hLineApp) 
+	{
+		pLineShutdown(hLineApp);
+		hLineApp = NULL;
+	}
+	plineGetGeneralInfo = NULL;
+	if (hModuleCellCore)
+	{
+		FreeLibrary(hModuleCellCore);
+		hModuleCellCore = NULL;
+	}
+	pLineShutdown = NULL;
+	pLineClose = NULL;
+	pLineOpen = NULL;
+	pLineNegotiateExtVersion = NULL;
+	pLineInitializeEx = NULL;
+	plineGetDevCaps;
+	plineNegotiateAPIVersion = NULL;
+	if (hModuleCoreDll)
+	{
+		FreeLibrary(hModuleCoreDll);
+		hModuleCoreDll = NULL;
+	}
+	wcsupr(szIMEI);
+	if (!pszIMEI && !nCount)
+	{
+		return _tcslen(szIMEI);
+	}
+	if (pszIMEI && nCount)
+	{
+		StringCchCopy(pszIMEI, nCount, szIMEI);
+		return _tcslen(pszIMEI);
+	}
+	return -1;
+}
+
+//get device id 
+LONG  WINAPI XUE_GetDevicePlatFormID(BYTE* pDeviceID, LONG cbSizeDeviceID, BYTE* pPlatFormID, LONG cbSizePlatFormID)
+{
+	// assume error 
+	BOOL returnVal = FALSE;
+
+    // save the device id
+	DEVICE_ID * devId = NULL;
+
+	DWORD devIdSize = 0;
+
+	INT iLength = 0;
+	/* 
+	* The correct size of the devId, which is determined early in this
+	* function 
+	*/
+	DWORD dwCorrectDevIdSizeBytes;
+
+	/* 
+	* we need a junk DEVICE_ID to set the dwSize to null to query for the
+	* size 
+	*/
+	DEVICE_ID queryId;
+
+	/* set the size part to zero for the query function */
+	queryId.dwSize = 0;
+
+	BOOL bRet;
+
+	/* figure out how large the devId needs to be for a standard, correct call */
+	bRet = KernelIoControl (IOCTL_HAL_GET_DEVICEID, NULL, 0, 	&queryId, sizeof (queryId), &dwCorrectDevIdSizeBytes);
+
+	DWORD getLastErrorVal = GetLastError ();
+
+	/* we want to get an ERROR_INSUFFICIENT_BUFFER and FALSE */
+	if (!bRet && getLastErrorVal == ERROR_INSUFFICIENT_BUFFER)
+	{
+		/* what we want */
+	}
+	else
+	{
+		// something went wrong
+		goto Exit;
+	}
+
+	dwCorrectDevIdSizeBytes = queryId.dwSize;
+
+	/* allocate memory for the devId */
+	devId = (DEVICE_ID *) _alloca(dwCorrectDevIdSizeBytes);
+
+	if (!devId)
+	{
+		//Couldn't allocate %u bytes for the devId.
+		goto Exit;
+	}
+
+	/* want to check that the call sets the right size on output */
+	DWORD checkSize;
+
+	/* try to get the DEVICE_ID */
+	bRet = KernelIoControl (IOCTL_HAL_GET_DEVICEID, NULL, 0,  devId, dwCorrectDevIdSizeBytes, &checkSize);
+
+	if (!bRet)
+	{
+		/* something went wrong... */
+		goto Exit;
+	}
+
+	if (checkSize != dwCorrectDevIdSizeBytes)
+	{
+		goto Exit;
+	}
+
+	/* check the size */
+	if (devId->dwSize != dwCorrectDevIdSizeBytes)
+	{
+		goto Exit;
+	}
+
+	/* print out the preset id if set */
+	if (devId->dwPresetIDOffset != 0)
+	{
+		if (NULL == pPlatFormID)
+		{
+			goto next;
+		}
+		/* code below relies on this assertion */
+		if (sizeof (BYTE) != 1)
+		{
+			goto Exit;
+		}
+
+		/* 
+		* values are not guaranteed to be null terminated.  Get a buffer
+		* one more so that we force them to be.
+		*/
+		/*
+		BYTE * pbPreset = (BYTE *) malloc(devId->dwPresetIDBytes * sizeof (BYTE));
+
+		if (pbPreset == NULL)
+		{
+    		//Couldn't allocate memory for szPreset
+			goto Exit;
+		}
+		*/
+
+		/* zero buffer first */
+		memset (pPlatFormID, 0, cbSizePlatFormID * sizeof (BYTE));
+		/* copy from the buffer into our larger buffer */
+		memcpy (pPlatFormID, ((BYTE *) devId) + devId->dwPresetIDOffset, devId->dwPresetIDBytes);
+
+//		free (pbPreset);
+	}
+next:
+	/* print out the platform id if set */
+	if (devId->dwPlatformIDOffset != 0)
+	{
+		/* code below relies on this assertion */
+		if (sizeof (BYTE) != 1)
+		{
+			goto Exit;
+		}
+
+		/* 
+		* values are not guaranteed to be null terminated.  Get a buffer
+		* one more so that we force them to be.
+		*/
+		/* copy from the buffer into our larger buffer */
+		memcpy (pDeviceID, ((BYTE *) devId) + devId->dwPlatformIDOffset, devId->dwPlatformIDBytes);
+
+		iLength = devId->dwPlatformIDBytes;
+
+		//Device platform id
+
+	//	free (pbPlatform);
+	}
+
+	/* only if we got here did we succeed */
+	returnVal = TRUE;
+
+Exit:
+
+	return iLength;
+}
+
+LONG WINAPI XUE_GetUserName(WCHAR* pszUserName, LONG nMax)
+{
+	TCHAR cKeyOwner[] = TEXT("ControlPanel\\Owner");
+	HKEY hKey;
+	DWORD dwSize;
+	BOOL ReturnCode = FALSE;
+	WCHAR szUserName[100] = {0};
+	if (RegOpenKeyEx(HKEY_CURRENT_USER, cKeyOwner, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+	{
+		DWORD dwKeyDataType = REG_DWORD;
+		dwSize = sizeof(szUserName);
+		RegQueryValueEx(hKey,	TEXT("Name"),	NULL,	&dwKeyDataType,	(LPBYTE)&szUserName, 	&dwSize);
+	}
+	if (hKey)	
+	{
+		RegCloseKey(hKey);
+	}
+	wcsupr(szUserName);
+	if (!pszUserName && !nMax)
+	{
+		return wcslen(szUserName); 
+	}	
+
+	StringCchCopy(pszUserName, nMax, szUserName);
+	return wcslen(pszUserName);		
+}
+
+LONG WINAPI XUE_GetDeviceID(LPWSTR pszDeviceID, LONG nCount)
+{
+	WCHAR szDeviceID[256] = {0};
+	BYTE            abDeviceID[GETDEVICEUNIQUEID_V1_OUTPUT * 12] = {0};
+	DWORD           cbDeviceId      = sizeof(abDeviceID);
+	ZeroMemory(abDeviceID, sizeof(abDeviceID));
+	LPGetDeviceUniqueID pGetDeviceUniqueID = NULL;
+	HMODULE hModuleCoreDll = LoadLibrary(TEXT("CoreDll.dll"));
+	LONG nFailedFun = 0;
+	if (!hModuleCoreDll)
+	{
+		goto cleanup;
+	}
+	pGetDeviceUniqueID = (LPGetDeviceUniqueID)GetProcAddress(hModuleCoreDll, TEXT("GetDeviceUniqueID"));
+	if (!pGetDeviceUniqueID)
+	{
+		nFailedFun ++;
+	}
+	if (nFailedFun)
+	{
+		//Old Method
+		cbDeviceId = XUE_GetDevicePlatFormID((LPBYTE)abDeviceID, GETDEVICEUNIQUEID_V1_OUTPUT * 12, NULL, 0);
+	}
+	else
+	{		
+		pGetDeviceUniqueID(reinterpret_cast<PBYTE>(DEVICEID_APPLICATION_DATA),	wcslen(DEVICEID_APPLICATION_DATA) * sizeof(WCHAR),	GETDEVICEUNIQUEID_V1,	abDeviceID,	&cbDeviceId);
+	}
+	ZeroMemory(szDeviceID, sizeof(szDeviceID));
+	for (LONG i = 0 ; i < cbDeviceId ; i ++)
+	{
+		TCHAR szCode[5] = {0};
+		StringCchPrintf(szCode, _countof(szCode), TEXT("%02X"), (BYTE)abDeviceID[i]);
+		StringCchCat(szDeviceID, _countof(szDeviceID), szCode);
+	}
+
+cleanup:
+	pGetDeviceUniqueID = NULL;
+	if (hModuleCoreDll) 
+	{
+		FreeLibrary(hModuleCoreDll);
+		hModuleCoreDll = NULL;
+	}	
+	if (!pszDeviceID && !nCount)
+	{
+		return _tcslen(szDeviceID);
+	}
+	if (pszDeviceID && nCount)
+	{
+		StringCchCopy(pszDeviceID, nCount, szDeviceID);
+		return wcslen(pszDeviceID);
+	}
+	return -1;
+}
+
+
+#ifdef UNDER_CE
 typedef   struct   _STORAGE_IDENTIFICATION   
 {    
 	DWORD   dwSize;    
@@ -92,174 +641,54 @@ typedef   struct   _STORAGE_IDENTIFICATION
 	((DeviceType) << 16) | ((Access) << 14) | ((Function) << 2) | (Method) \
 	)
 #endif
-LONG GetID(LPCTSTR pszDevice, LPTSTR pszID, LONG nLen)
+static DWORD GetID(LPCWSTR pszDevice)
 {
-	TCHAR szDevice[128] = {0};
+	DWORD dwID = ULONG_MAX;
+	WCHAR szDevice[128] = {0};
 	if (!pszDevice)
 	{
-		return 0;
+		return dwID;
 	}
 	StringCchCopy(szDevice, _countof(szDevice), pszDevice);
-	TCHAR   tzSDCardID[22] = {0}; 
+	WCHAR		szElement[32] = {0};
 	HANDLE   hCard = CreateFile(szDevice, GENERIC_READ|GENERIC_WRITE,	0, NULL, OPEN_EXISTING, 0,  NULL); 
 	if(hCard) 
-	{ 
-		int  i  =  0; 
-		PSTORAGE_IDENTIFICATION  pStoreInfo;    
-		pStoreInfo=(STORAGE_IDENTIFICATION *)LocalAlloc(LMEM_ZEROINIT, 3000);    
+	{ 			  
+		BYTE	abBuffer[3000] = {0};
+		ZeroMemory(abBuffer, sizeof(abBuffer));
+		PSTORAGE_IDENTIFICATION pStoreInfo = (STORAGE_IDENTIFICATION *)abBuffer;    
 
 		DWORD   dwGetBytes; 
-		if   (DeviceIoControl(hCard, 	CTL_CODE(FILE_DEVICE_DISK,   0x0709, METHOD_BUFFERED,  FILE_ANY_ACCESS), NULL, 0, (LPVOID)pStoreInfo, 3000, &dwGetBytes, NULL))    
+		if (DeviceIoControl(hCard, 	CTL_CODE(FILE_DEVICE_DISK,   0x0709, METHOD_BUFFERED,  FILE_ANY_ACCESS), NULL, 0, (LPVOID)pStoreInfo, 3000, &dwGetBytes, NULL))    
 		{    
 			if(dwGetBytes > 0) 
-			{ 
-				i  =  0; 
-				int  j = 0; 
+			{ 			
 				if(pStoreInfo->dwSerialNumOffset  <  dwGetBytes) 
 				{ 
-					BYTE*  SerialNo=(((BYTE*)pStoreInfo) + pStoreInfo->dwSerialNumOffset);    
-					while(SerialNo[i] && i < (int)(dwGetBytes-pStoreInfo->dwSerialNumOffset) &&  i < 22)    
-					{    
-						if(SerialNo[i] < '0' ||  SerialNo[i] >  'z') 
-						{ 
-							j ++; 
-						} 
-						else 
-						{ 
-							tzSDCardID[i - j]=(TCHAR)SerialNo[i];    
-						} 
-						i ++;    
-					}    
-				} 
-				tzSDCardID[i - j]=0;   
-				StringCchCopy(pszID, nLen, tzSDCardID);
+					BYTE* SerialNo = (((BYTE*)pStoreInfo) + pStoreInfo->dwSerialNumOffset);  				   
+					dwID = strtoul( (LPCSTR)SerialNo, NULL, 16);					
+					if( !dwID || ULONG_MAX == dwID )
+					{
+						dwID = strtoul( (LPCSTR)SerialNo, NULL, 10);
+					}	
+					if ( !dwID)
+					{
+						dwID = ULONG_MAX;
+					}
+				}							
 			} 
-		} 		
-		LocalFree(pStoreInfo);    
+		} 			
 		CloseHandle(hCard); 		
+		hCard = NULL;
 	}
-	return _tcslen(pszID);
+	return dwID;
 }
 #endif
 
-#define IOCTL_DISK_BASE           FILE_DEVICE_DISK 
-#define IOCTL_DISK_GET_STORAGEID  CTL_CODE(IOCTL_DISK_BASE, 0x709,METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-const UINT MINIMUM_CARD_SIZE = 63 * (1024 * 1024); 
-BOOL WINAPI isCardAvailable(TCHAR *szPath) 
-{ //Î´¿¼ÂÇ¶à¸ö´æ´¢¿¨
-	BOOL res = FALSE; 
-	HANDLE hFlashCard = NULL; 
-	WIN32_FIND_DATA find; 
-	BOOL loop = TRUE; 
-
-	ULARGE_INTEGER freeBytesAvailableToCaller; 
-	ULARGE_INTEGER totalNumberOfBytes; 
-	ULARGE_INTEGER totalNumberOfFreeBytes; 
-
-	memset(&find, 0, sizeof(WIN32_FIND_DATA)); 
-
-	hFlashCard = ::FindFirstFlashCard(&find); 
-
-	if(INVALID_HANDLE_VALUE != hFlashCard) 
-	{  
-		if(((find.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY) && 
-			((find.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY) == FILE_ATTRIBUTE_TEMPORARY)) 
-		{ 
-			res = ::GetDiskFreeSpaceEx(find.cFileName, &freeBytesAvailableToCaller, 
-				&totalNumberOfBytes, 
-				&totalNumberOfFreeBytes); 
-
-			// Only count the card if it is the correct size 
-			if((res == TRUE) && (totalNumberOfBytes.QuadPart >= MINIMUM_CARD_SIZE)) 
-			{ 
-				// Save the name of the flash card 
-				_tcsncpy(szPath, find.cFileName, MAX_PATH); 
-
-			} 
-		} 
-
-		::FindClose (hFlashCard); 
-	} 
-
-	return res; 
-} 
-
-
-BOOL WINAPI XUE_GetSDID2(UINT& uSDID)
+LONG WINAPI XUE_GetSDID(LPWSTR pszID, LONG nLen)
 {
-	TCHAR szPath[MAX_PATH] = {0};
-
-	if (!isCardAvailable(szPath))
-	{
-		return FALSE;
-	}
-	StringCchCat(szPath, MAX_PATH, TEXT("\\Vol:"));
-	HANDLE theVolumeHandle = CreateFile(szPath, GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
-	BOOL success = FALSE;
-	if( theVolumeHandle != INVALID_HANDLE_VALUE )
-	{
-		// Allocate the storage info
-		DWORD theBytesReturned = 0;
-
-		int theSize = sizeof(STORAGE_IDENTIFICATION) + 33;
-		STORAGE_IDENTIFICATION *theStorageInfo = (STORAGE_IDENTIFICATION*) malloc( theSize );
-		memset( theStorageInfo, 0, theSize );
-
-		success = DeviceIoControl(
-			theVolumeHandle,
-			IOCTL_DISK_GET_STORAGEID,
-			NULL,
-			0,
-			theStorageInfo,
-			theSize - 1,
-			&theBytesReturned,
-			NULL);
-
-		if( success )
-		{
-			success = FALSE;
-
-			if( theStorageInfo->dwManufactureIDOffset > 0 )
-			{
-				// Not used.
-			}
-
-			if( theStorageInfo->dwSerialNumOffset > 0 && theStorageInfo->dwSerialNumOffset < theStorageInfo->dwSize )
-			{
-				char* theCardId = ((char*) theStorageInfo ) + theStorageInfo->dwSerialNumOffset;
-
-				// Convert string to long.
-				uSDID = strtoul( theCardId, NULL, 16 );
-				if( uSDID == 0 || uSDID == ULONG_MAX )
-				{
-					uSDID = strtoul( theCardId, NULL, 10 );
-				}
-
-				if( uSDID != 0 && uSDID != ULONG_MAX )
-				{
-					success = TRUE;
-
-				}
-			}
-		}
-
-		// Cleanup.
-
-		free( theStorageInfo );
-
-		CloseHandle( theVolumeHandle );
-	}
-	return success;
-
-}
-
-LONG WINAPI XUE_GetSDID(LPTSTR pszID, LONG nLen)
-{
-	TCHAR		szID[1024] = {0};
-	HKEY		hKeyActive = NULL;	
-	HKEY		hRegKey = NULL;	
-	HKEY		hGuidKey = NULL;
+	WCHAR		szID[512] = {0};
+	HKEY		hKeyActive = NULL;		
 	if (ERROR_SUCCESS != RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("Drivers\\Active"), 0, KEY_ALL_ACCESS, &hKeyActive))
 	{		
 		return 0;
@@ -271,12 +700,12 @@ LONG WINAPI XUE_GetSDID(LPTSTR pszID, LONG nLen)
 		hKeyActive = NULL;		
 		return 0;
 	}   
-	TCHAR szItemID[128] = {0};
+	WCHAR szItemID[128] = {0};
 	DWORD dwValueSize = 0;
 	DWORD dwValueType = 0;
-	TCHAR szKName[512] = {0};   
+	WCHAR szKName[512] = {0};   
 	DWORD cbKName = sizeof(szKName); 
-	TCHAR szDeviceName[512] = {0};
+	WCHAR szDeviceName[512] = {0};
 	for (DWORD dwIdx = 0; dwIdx < dwSubKeyCount; dwIdx ++)
 	{
 		ZeroMemory(szKName, sizeof(szKName));
@@ -293,7 +722,11 @@ LONG WINAPI XUE_GetSDID(LPTSTR pszID, LONG nLen)
 					{
 						szItemID[0] = 0;
 #ifdef WINCE
-						GetID(szDeviceName, szItemID, _countof(szItemID));
+						DWORD dwID = GetID(szDeviceName);
+						if ((DWORD)(-1) != dwID)
+						{
+							StringCchPrintf(szItemID, _countof(szItemID), TEXT("%08X"), dwID);
+						}						
 #endif
 						if (szItemID[0])
 						{
@@ -321,53 +754,267 @@ LONG WINAPI XUE_GetSDID(LPTSTR pszID, LONG nLen)
 	}
 	return 0;
 }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#define NVIDIA_GUID TEXT("{1A3E09BE-1E45-494B-9174-D7385B45BBF5}")
 
-BOOL WINAPI XUE_GetSDID3(UINT& uSDID)
+#ifndef OID_802_3_PERMANENT_ADDRESS
+#define OID_802_3_PERMANENT_ADDRESS             0x01010101
+#endif
+
+#ifndef IOCTL_NDIS_QUERY_GLOBAL_STATS
+#define IOCTL_NDIS_QUERY_GLOBAL_STATS						0x00170002
+#endif
+
+typedef DWORD (WINAPI *LPGetAdaptersInfo)(PIP_ADAPTER_INFO,PULONG);
+
+static LONG WINAPI GetNetAdapterPhysicalMAC(WCHAR* strDeviceName, WCHAR* pszMac, LONG nMax)
 {
-	BOOL blRet = FALSE;
-	uSDID = 0;
-	HANDLE theVolumeHandle = CreateFile(TEXT("\\Storage Card\\Vol:"), GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);	
-	if( theVolumeHandle != INVALID_HANDLE_VALUE )
+	WCHAR   szDriver[256] = {0};  
+	BYTE		ucData[8];
+	DWORD		ByteRet;	
+	WCHAR  szPhysicalMAC[32] = {0};
+	HANDLE hDriver = INVALID_HANDLE_VALUE;
+	StringCchCopyW(szDriver, _countof(szDriver), L"\\\\.\\");
+	StringCchCatW(szDriver, _countof(szDriver), strDeviceName);
+
+	hDriver = CreateFileW(szDriver, GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);  
+	if(INVALID_HANDLE_VALUE == hDriver)  
+	{  
+		return -1;  
+	}  
+	ULONG dwID = OID_802_3_PERMANENT_ADDRESS;	
+	ZeroMemory(ucData, sizeof(ucData));
+	if(!DeviceIoControl(hDriver, IOCTL_NDIS_QUERY_GLOBAL_STATS, &dwID, sizeof(dwID), ucData, sizeof(ucData), &ByteRet, NULL))
 	{
-		// Allocate the storage info
-		int theSize = sizeof(STORAGE_IDENTIFICATION) + 33;
-		STORAGE_IDENTIFICATION* theStorageInfo = (STORAGE_IDENTIFICATION*) malloc( theSize );
-		memset( theStorageInfo, 0, theSize );
-
-		DWORD theBytesReturned;
-		char* theCardId = NULL;
-		long unit_id;
-		BOOL success = DeviceIoControl(theVolumeHandle,	IOCTL_DISK_GET_STORAGEID,	NULL,	0,theStorageInfo,theSize - 1,	&theBytesReturned,NULL);
-		if( success )
-		{
-			success = FALSE;
-			if( theStorageInfo->dwManufactureIDOffset > 0 )
-			{
-				// Not used.
-			}
-			if( theStorageInfo->dwSerialNumOffset > 0 && theStorageInfo->dwSerialNumOffset < theStorageInfo->dwSize )
-			{
-				theCardId = ((char*) theStorageInfo ) + theStorageInfo->dwSerialNumOffset;
-				// Convert string to long.
-				unit_id = strtoul( theCardId, NULL, 16 );
-				if( unit_id == 0 || unit_id == ULONG_MAX )
-				{
-					unit_id = strtoul( theCardId, NULL, 10 );
-				}
-				if( unit_id != 0 && unit_id != ULONG_MAX )
-				{
-					success = TRUE;					
-					uSDID = unit_id;
-					blRet = TRUE;
-				}
-			}
-		}
-
-		// Cleanup.
-		free( theStorageInfo );
-		theStorageInfo = NULL;
-		CloseHandle( theVolumeHandle );
-		theVolumeHandle = NULL;
+		return -2;
 	}
-	return blRet;
+	else
+	{		
+		for (DWORD dwIdx = 0; dwIdx < 6; dwIdx ++)
+		{
+			WCHAR szCode[8] = {0};
+			StringCchPrintfW(szCode, _countof(szCode), L"%02X", ucData[dwIdx]);
+			StringCchCatW(szPhysicalMAC, _countof(szPhysicalMAC), szCode);
+		}		
+	}
+	CloseHandle(hDriver);
+	hDriver = NULL;
+
+	if (!pszMac && !nMax)
+	{
+		return wcslen(szPhysicalMAC);
+	}
+	else if (pszMac && nMax)
+	{
+		StringCchCopyW(pszMac, nMax, szPhysicalMAC);	
+		return wcslen(pszMac);
+	}
+	return 0;
 }
+LONG WINAPI XUE_GetMAC( LPWSTR pszMac, LONG nMax)
+{
+	BOOL blFind = FALSE;
+	TCHAR szMac[256 + 10] = {0};
+	HMODULE	hModuleIphlpapi = NULL;
+	LPGetAdaptersInfo pGetAdapterInfo = NULL;
+
+	ULONG nBufferLength = 0;
+	BYTE* pBuffer = 0;
+	hModuleIphlpapi = LoadLibrary(TEXT("Iphlpapi.dll"));
+	if (!hModuleIphlpapi)
+	{
+		goto	__exit;
+	}
+#ifdef UNDER_CE
+	pGetAdapterInfo = (LPGetAdaptersInfo)GetProcAddress(hModuleIphlpapi, L"GetAdaptersInfo");
+#else
+	pGetAdapterInfo = (LPGetAdaptersInfo)GetProcAddress(hModuleIphlpapi, "GetAdaptersInfo");
+#endif
+	if (!pGetAdapterInfo)
+	{
+		goto	__exit;
+	}
+	if( ERROR_BUFFER_OVERFLOW == pGetAdapterInfo( 0, &nBufferLength ))
+	{		
+		pBuffer = new BYTE[ nBufferLength ];
+		ZeroMemory(pBuffer, sizeof(*pBuffer) * nBufferLength);
+	}
+	else
+	{
+
+	}
+
+	// Get the Adapter Information.
+	PIP_ADAPTER_INFO pAdapterInfo =	reinterpret_cast<PIP_ADAPTER_INFO>(pBuffer);
+	if (ERROR_SUCCESS == pGetAdapterInfo( pAdapterInfo, &nBufferLength ))
+	{
+		while( pAdapterInfo && pAdapterInfo->Description[0])
+		{		
+			TCHAR szPhysicalMAC[20] = {0};
+			TCHAR szLogicMAC[20] = {0};
+			WCHAR szAdaptrName[256] = {0};
+			StringCchPrintf(szLogicMAC, _countof(szLogicMAC), _T("%02X%02X%02X%02X%02X%02X"),	pAdapterInfo->Address[0],	pAdapterInfo->Address[1],	pAdapterInfo->Address[2],	pAdapterInfo->Address[3],	pAdapterInfo->Address[4],	pAdapterInfo->Address[5]);
+
+			MultiByteToWideChar(CP_ACP, 0, pAdapterInfo->AdapterName, strlen(pAdapterInfo->AdapterName),  szAdaptrName, _countof(szAdaptrName));
+			DWORD dwError = GetNetAdapterPhysicalMAC(szAdaptrName, szPhysicalMAC, _countof(szPhysicalMAC)); 
+			if (dwError)
+			{
+				//HWTRACE(TEXT("GetPhysicalMAC ERROR %08X %d\n"), dwError, GetLastError());
+			}
+			if (!szPhysicalMAC[0])
+			{
+				StringCchCopy(szPhysicalMAC, _countof(szPhysicalMAC), szLogicMAC);
+			}
+			if (_tcscmp(szPhysicalMAC, TEXT("000000000000")))
+			{
+				StringCchCat(szMac, _countof(szMac), szPhysicalMAC);
+				StringCchCat(szMac, _countof(szMac), TEXT(" "));
+			}		
+
+			pAdapterInfo = pAdapterInfo->Next;
+		}
+	}	
+
+	if (pBuffer)
+	{
+		delete[] pBuffer;
+		pBuffer	= NULL;
+	}	
+__exit:
+	pGetAdapterInfo = NULL;
+	FreeLibrary(hModuleIphlpapi);
+	hModuleIphlpapi = NULL;
+
+	wcsupr(szMac);
+	if (!pszMac && !nMax)
+	{
+		return _tcslen(szMac);
+	}
+	else if (pszMac && nMax)
+	{
+		StringCchCopy(pszMac, nMax, szMac);	
+		return _tcslen(pszMac);
+	}
+	return -1;	
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+DWORD WINAPI XUE_GetLockState()
+{
+	DWORD dwLockState = 0;	
+#ifdef UNDER_CE
+	HKEY hSubKey = NULL;
+	if (ERROR_SUCCESS == RegOpenKeyEx (HKEY_LOCAL_MACHINE, TEXT("System\\State"), 0L, KEY_READ, &hSubKey))
+	{
+		DWORD dwValueSize = 0, dwValueType = 0;	
+		if(ERROR_SUCCESS == RegQueryValueEx (hSubKey, TEXT("Lock"), NULL,	&dwValueType, NULL, &dwValueSize) && REG_DWORD == dwValueType)
+		{		
+			dwValueSize = sizeof(dwLockState);
+			if (ERROR_SUCCESS != RegQueryValueEx (hSubKey, TEXT("Lock"), NULL,	&dwValueType, (LPBYTE)&dwLockState, &dwValueSize))
+			{
+				dwLockState = 0;
+			}					
+		}
+		RegCloseKey(hSubKey);
+		hSubKey = NULL;
+	}		
+#endif
+	return dwLockState;
+}
+
+BOOL WINAPI XUE_IsKeyboardLocked()
+{
+	BOOL bRes = FALSE;
+#ifdef UNDER_CE
+	DWORD dwLockState = XUE_GetLockState();	
+	if (dwLockState & SN_LOCK_BITMASK_KEYLOCKED)
+	{
+		bRes = TRUE;
+	}
+#endif
+	return bRes;
+}
+
+
+
+DWORD	WINAPI XUE_GetWiFiState()
+{
+	DWORD dwWiFiState = 0;	
+#ifdef UNDER_CE
+	HKEY hSubKey = NULL;
+	if (ERROR_SUCCESS == RegOpenKeyEx (HKEY_LOCAL_MACHINE, TEXT("System\\State\\Hardware"), 0L, KEY_READ, &hSubKey))
+	{
+		DWORD dwValueSize = 0, dwValueType = 0;	
+		if(ERROR_SUCCESS == RegQueryValueEx (hSubKey, TEXT("WiFi"), NULL,	&dwValueType, NULL, &dwValueSize) && REG_DWORD == dwValueType)
+		{		
+			dwValueSize = sizeof(dwWiFiState);
+			if (ERROR_SUCCESS != RegQueryValueEx (hSubKey, TEXT("WiFi"), NULL,	&dwValueType, (LPBYTE)&dwWiFiState, &dwValueSize))
+			{
+				dwWiFiState = 0;
+			}					
+		}
+		RegCloseKey(hSubKey);
+		hSubKey = NULL;
+	}		
+#endif
+	return dwWiFiState;
+}
+
+DWORD WINAPI XUE_GetBluetoothState()
+{
+	DWORD dwBluetoothState = 0;	
+#ifdef UNDER_CE
+	HKEY hSubKey = NULL;
+	if (ERROR_SUCCESS == RegOpenKeyEx (HKEY_LOCAL_MACHINE, TEXT("System\\State\\Hardware"), 0L, KEY_READ, &hSubKey))
+	{
+		DWORD dwValueSize = 0, dwValueType = 0;	
+		if(ERROR_SUCCESS == RegQueryValueEx (hSubKey, TEXT("Bluetooth"), NULL,	&dwValueType, NULL, &dwValueSize) && REG_DWORD == dwValueType)
+		{		
+			dwValueSize = sizeof(dwBluetoothState);
+			if (ERROR_SUCCESS != RegQueryValueEx (hSubKey, TEXT("Bluetooth"), NULL,	&dwValueType, (LPBYTE)&dwBluetoothState, &dwValueSize))
+			{
+				dwBluetoothState = 0;
+			}					
+		}
+		RegCloseKey(hSubKey);
+		hSubKey = NULL;
+	}		
+#endif
+	return dwBluetoothState;
+}
+
+DWORD	WINAPI XUE_GetPhoneState()
+{
+	DWORD dwPhoneState = 0;	
+#ifdef UNDER_CE
+	HKEY hSubKey = NULL;
+	if (ERROR_SUCCESS == RegOpenKeyEx (HKEY_LOCAL_MACHINE, TEXT("System\\State\\Phone"), 0L, KEY_READ, &hSubKey))
+	{
+		DWORD dwValueSize = 0, dwValueType = 0;	
+		if(ERROR_SUCCESS == RegQueryValueEx (hSubKey, TEXT("Status"), NULL,	&dwValueType, NULL, &dwValueSize) && REG_DWORD == dwValueType)
+		{		
+			dwValueSize = sizeof(dwPhoneState);
+			if (ERROR_SUCCESS != RegQueryValueEx (hSubKey, TEXT("Status"), NULL,	&dwValueType, (LPBYTE)&dwPhoneState, &dwValueSize))
+			{
+				dwPhoneState = 0;
+			}					
+		}
+		RegCloseKey(hSubKey);
+		hSubKey = NULL;
+	}		
+#endif
+	return dwPhoneState;
+}
+
+BOOL WINAPI XUE_IsFlightModeOn()
+{
+	DWORD dwPhoneState = XUE_GetPhoneState();	
+	return (dwPhoneState & SN_PHONERADIOOFF_BITMASK);	
+}
+
+
+

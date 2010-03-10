@@ -39,4 +39,7 @@ typedef VOID (_stdcall* LINEDDAPROC)(int, int, LPARAM);
 BOOL WINAPI XUE_LineDDA(int x0, int y0, int x1, int y1, LINEDDAPROC lpLineFunc, LPARAM lpData);
 #endif
 //////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+BOOL		WINAPI		XUE_DrawTransparent(HDC hdc, int x, int y, HBITMAP	hBitmap, COLORREF crColour);
 #endif //HWX_HDC_H
