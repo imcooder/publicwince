@@ -382,6 +382,14 @@ typedef struct tagCnd8
 #define ZeroMemory(pVoid, nLen) memset((pVoid), 0, (nLen))
 #endif
 
+#undef SAFE_FREE_MEMORY
+#define SAFE_FREE_MEMORY(ptr) \
+	if ((ptr))\
+{ \
+	free (ptr);\
+	(ptr) = NULL; \
+}
+
 //#define SAFE_DELETE(ptr)
 #undef SAFE_DELETE
 #define SAFE_DELETE(ptr) \
@@ -632,7 +640,16 @@ typedef struct tagCnd8
 #else
 #define INITIALIZE_MEMBER(module, name)     g_##name = (name## Ptr) GetProcAddress(module, #name)
 #endif // _UNICODE
-
+//////////////////////////////////////////////////////////////////////////
+/* Used inside COM methods that do not want to throw */
+#ifndef ENSURE_RETURN_VAL
+#define ENSURE_RETURN_VAL(expr, val)        \
+	do {                                           \
+	int __atl_condVal=!!(expr);                \
+	ATLASSERT(__atl_condVal);                  \
+	if(!(__atl_condVal)) return val;           \
+	} while (0) 
+#endif // ATLENSURE_RETURN_VAL
 //////////////////////////////////////////////////////////////////////////
 #endif//HWXUE_EXT_TYPE_H_INC
 

@@ -547,3 +547,60 @@ BOOL WINAPI XUE_StretchDraw( HDC hdcDest, const RECT* prtDest, HDC hdcSrc, const
 
 	}	
 }
+
+
+
+BOOL WINAPI XUE_DrawTransparent(HDC hDC, int x, int y, HBITMAP	hBitmap, COLORREF crColour)
+{
+	if (!hDC || !hBitmap)
+	{
+		return FALSE;
+	}
+	COLORREF crOldBack = SetBkColor(hDC, RGB(255, 255, 255));
+
+	COLORREF crOldText = SetTextColor(hDC, RGB(0, 0, 0));
+
+	HDC hDCImage = NULL, hDCTrans = NULL;
+
+	hDCImage = CreateCompatibleDC(hDC);
+
+	hDCTrans = CreateCompatibleDC(hDC);
+
+
+	// Select the image into the appropriate dc
+
+	HBITMAP pOldBitmapImage = (HBITMAP)SelectObject(hDCImage, hBitmap);
+
+
+	// Create the mask hBmpInfo
+
+	BITMAP hBmpInfo;
+
+	GetObject(hBitmap, sizeof(BITMAP), &hBmpInfo);
+
+	HBITMAP hBmpTrans = CreateBitmap(hBmpInfo.bmWidth, hBmpInfo.bmHeight, 1, 1, NULL);
+	HBITMAP pOldBitmapTrans = (HBITMAP)SelectObject(hDCTrans, hBmpTrans);
+
+	SetBkColor(hDCImage, crColour);
+
+	BitBlt(hDCTrans, 0, 0, hBmpInfo.bmWidth, hBmpInfo.bmHeight, hDCImage, 0, 0, SRCCOPY);
+
+	BitBlt(hDC, x, y, hBmpInfo.bmWidth, hBmpInfo.bmHeight, hDCImage, 0, 0, SRCINVERT);
+
+	BitBlt(hDC, x, y, hBmpInfo.bmWidth, hBmpInfo.bmHeight, hDCTrans, 0, 0, SRCAND);
+
+	BitBlt(hDC, x, y, hBmpInfo.bmWidth, hBmpInfo.bmHeight, hDCImage, 0, 0, SRCINVERT);
+
+
+	// Restore settings
+	SelectObject(hDCImage, pOldBitmapImage);
+	pOldBitmapImage = NULL;
+	SelectObject(hDCTrans, pOldBitmapTrans);
+	pOldBitmapTrans = NULL;
+	SetBkColor(hDC, crOldBack);
+	crOldBack = 0;
+	SetTextColor(hDC, crOldText);
+	crOldText = 0;
+	return TRUE;
+
+}
