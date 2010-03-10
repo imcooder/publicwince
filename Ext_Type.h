@@ -646,7 +646,7 @@ typedef struct tagCnd8
 #define ENSURE_RETURN_VAL(expr, val)        \
 	do {                                           \
 	int __atl_condVal=!!(expr);                \
-	ATLASSERT(__atl_condVal);                  \
+	ASSERT(__atl_condVal);                  \
 	if(!(__atl_condVal)) return val;           \
 	} while (0) 
 #endif // ATLENSURE_RETURN_VAL
