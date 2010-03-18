@@ -544,8 +544,8 @@ BOOL WINAPI XUE_StretchDraw( HDC hdcDest, const RECT* prtDest, HDC hdcSrc, const
 			RectCenterMoveTo(&rtTmpDest, (rtDest.right + rtDest.left) / 2, (rtDest.bottom + rtDest.top) / 2);
 			return ::StretchBlt(hdcDest, rtTmpDest.left, rtTmpDest.top, rtTmpDest.right - rtTmpDest.left, rtTmpDest.bottom - rtTmpDest.top, hdcSrc, rtSrc.left, rtSrc.top, rtSrc.right - rtSrc.left, rtSrc.bottom - rtSrc.top, dwRop);
 		}	
-
 	}	
+	return TRUE;
 }
 
 
