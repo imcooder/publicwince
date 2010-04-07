@@ -4,10 +4,10 @@
 #include "XTypeEx.h"
 
 
-#define XUE_CODE_TCTOSC
-#define XUE_CODE_SCTOTC
-#define XUE_CODE_KOR
-#define XUE_CODE_JPN
+//#define XUE_CODE_TCTOSC
+//#define XUE_CODE_SCTOTC
+//#define XUE_CODE_KOR
+//#define XUE_CODE_JPN
 
 #define NUMCONV_NORMAL						0x00000001		// ∂˛©ñ©ñ∞À
 #define NUMCONV_NORMAL_UPPER			0x00000008		// ∑°¡„¡„∞∆
