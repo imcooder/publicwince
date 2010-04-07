@@ -492,6 +492,7 @@ BOOL WINAPI XUE_LineDDA( int x0, int y0, int x1, int y1, LINEDDAPROC lpLineFunc,
 			nCtrl += (ySize << 1);
 		}
 	}	
+	return TRUE;
 }
 #endif
 
