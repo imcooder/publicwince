@@ -13,7 +13,7 @@ public:
 	virtual BOOL Terminate();		
 	virtual BOOL CreateThread();
 	virtual BOOL SetThreadPriority(int);
-protected:
+public:
 	HANDLE m_hThread;		
 	HANDLE m_hTerminateEvent;
 	DWORD m_dwThreadID;

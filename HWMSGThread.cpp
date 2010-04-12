@@ -49,6 +49,7 @@ BOOL CHWMSGThread::CreateThread()
 	__super::CreateThread();	
 	if ( !m_hThread)
 	{		
+		SAFE_DELETE_OBJECT(m_hStartEvent);
 		return FALSE;
 	}	
 	::WaitForSingleObject(m_hStartEvent,INFINITE);	
@@ -63,8 +64,7 @@ BOOL CHWMSGThread::Release()
 		{
 			HWTRACE(TEXT("The Thread is runing, can not Release\n"));
 		}		
-		CloseHandle(m_hThread);
-		m_hThread = NULL;
+		SAFE_CLOSE_HANDLE(m_hThread);		
 	}
 	SAFE_CLOSE_HANDLE(m_hStartEvent);
 	return TRUE;
@@ -88,7 +88,7 @@ LRESULT CHWMSGThread::_ThreadProc()
 
 BOOL CHWMSGThread::Terminate()
 {				
-	HWTRACE(TEXT("CHWMSGThread::Terminate Begin\n"));
+	HWTRACE(TEXT("CHWMSGThread::Terminate Begin\n"));	
 	if (m_hThread)
 	{
 		DWORD dwExitCode; 
@@ -96,7 +96,7 @@ BOOL CHWMSGThread::Terminate()
 		if (STILL_ACTIVE == dwExitCode)
 		{
 			PostMessage(WM_QUIT, 0, 0);	
-			DWORD dwWait = WaitForSingleObject(m_hThread, 300);
+			DWORD dwWait = WaitForSingleObject(m_hThread, 50);
 			switch (dwWait)
 			{
 			case WAIT_TIMEOUT:

@@ -17,6 +17,7 @@ public:
 	virtual BOOL LoadLibrary(LPCTSTR);
 	virtual void FreeLibrary();
 	virtual BOOL Succeed();
+	HMODULE GetSafeHModule();
 protected:	
 	HMODULE		m_hModule;
 	TCHAR			m_szModuleFilePath[MAX_PATH];

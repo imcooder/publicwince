@@ -31,7 +31,7 @@ BOOL HWModule::LoadLibrary( LPCTSTR pszPath)
 	return blReturn;
 }
 void HWModule::FreeLibrary()
-{
+{		
 	SAFE_FREE_LIBRARY(m_hModule);
 	m_szModuleFilePath[0] = 0;
 	m_blSucceed = FALSE;
@@ -42,5 +42,9 @@ BOOL HWModule::Succeed()
 	return m_hModule != NULL;
 }
 
+HMODULE HWModule::GetSafeHModule()
+{
+	return m_hModule;
+}
 
 //////////////////////////////////////////////////////////////////////////

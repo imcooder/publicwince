@@ -18,12 +18,12 @@ public:
 	LRESULT SendMessage(UINT, WPARAM, LPARAM);
 protected:	
 	HANDLE m_hStartEvent;	
+	BOOL m_blExit;
 protected:	
 	//////////////////////////////////////////////////////////////////////////		
 	LRESULT DefThreadProc(UINT, WPARAM, LPARAM);
 	virtual LRESULT _Proc(UINT, WPARAM, LPARAM);
-	virtual LRESULT _ThreadProc();
-	BOOL m_blExit;
+	virtual LRESULT _ThreadProc();	
 };
 
 #endif	//HW_HWMSGTHREAD_H
