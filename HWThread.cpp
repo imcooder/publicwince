@@ -43,7 +43,7 @@ BOOL CHWThread::Terminate()
 		if (STILL_ACTIVE == dwExitCode)
 		{
 			SetEvent(m_hTerminateEvent);	
-			DWORD dwWait = WaitForSingleObject(m_hThread, 300);
+			DWORD dwWait = WaitForSingleObject(m_hThread, 10);
 			switch (dwWait)
 			{
 			case WAIT_TIMEOUT:

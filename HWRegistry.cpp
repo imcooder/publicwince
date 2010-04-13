@@ -482,8 +482,7 @@ BOOL		WINAPI RegDeleteAllValue( HKEY hKey)
 
 BOOL		WINAPI XUE_RegDeleteAllValue( HKEY hKey, LPCTSTR pszSubKey )
 {
-	DWORD   dwCount = 0;   
-	TCHAR		szValueName[512]; 	
+	DWORD   dwCount = 0;  	
 	if (!hKey)
 	{
 		return FALSE;
@@ -508,8 +507,7 @@ BOOL		WINAPI XUE_RegDeleteAllValue( HKEY hKey, LPCTSTR pszSubKey )
 
 BOOL		WINAPI XUE_RegDeleteAllSubKey( HKEY hKey, LPCTSTR pszSubKey )
 {
-	DWORD   dwCount = 0;   
-	TCHAR		szValueName[512]; 	
+	DWORD   dwCount = 0;  		
 	if (!hKey)
 	{
 		return FALSE;
