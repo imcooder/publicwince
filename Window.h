@@ -35,7 +35,11 @@ public:
 	//
 	BOOL ResizeWindow(SIZE);
 	HWND GetParent() const;
+	static HWND GetParent(HWND);
 	HWND GetSafeHwnd() const;
+	//
+	HWND GetOwner() const;
+	static HWND GetOwner(HWND);
 	//
 	BOOL GetWindowRect(RECT*) const;
 	static BOOL GetWindowRect(HWND, RECT*);
@@ -51,14 +55,20 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	BOOL SetWindowText( LPCTSTR);	
 	static BOOL SetWindowText(HWND, LPCTSTR);
-
+	//////////////////////////////////////////////////////////////////////////
+	BOOL ClientToScreen(LPRECT);	
 	static BOOL ClientToScreen(HWND, LPRECT);
+	// 
+	BOOL ScreenToClient(LPRECT);
+	static BOOL ScreenToClient(HWND, LPRECT);
 	//
 	LONG SetID(LONG);
 	static LONG SetID(HWND, LONG);
 	//
 	LONG GetID() const;
 	static LONG GetID(HWND);
+	//
+	HWND GetCreator() const;
 	//////////////////////////////////////////////////////////////////////////	
 	BOOL ModifyStyle(DWORD dwRemove, DWORD dwAdd, UINT nFlags = 0);
 	BOOL ModifyStyleEx(DWORD dwRemove, DWORD dwAdd, UINT nFlags = 0);
@@ -73,10 +83,27 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 protected:
 	_Window();	
+protected:
+	virtual LRESULT OnCommand(HWND, UINT, WPARAM, LPARAM) = 0;
+	virtual LRESULT OnInitDialog(HWND, UINT, WPARAM, LPARAM) = 0;	
+	virtual LRESULT OnSize(HWND, UINT, WPARAM, LPARAM) = 0;
+	virtual LRESULT OnMove(HWND, UINT, WPARAM, LPARAM) = 0;
+	virtual LRESULT OnDestroy(HWND, UINT, WPARAM, LPARAM) = 0;
+	virtual LRESULT OnEraseBackground(HWND, UINT, WPARAM, LPARAM) = 0;	
+	virtual LRESULT OnSetCursor(HWND, UINT, WPARAM, LPARAM) = 0;
+	virtual LRESULT OnLButtonDown(HWND, UINT, WPARAM, LPARAM) = 0;
+	virtual LRESULT OnLButtonDbClk(HWND, UINT, WPARAM, LPARAM) = 0;
+	virtual LRESULT OnLButtonUp(HWND, UINT, WPARAM, LPARAM) = 0;
+	virtual LRESULT OnMouseMove(HWND, UINT, WPARAM, LPARAM) = 0;
+	virtual LRESULT OnShowWindow(HWND, UINT, WPARAM, LPARAM) = 0;	
+	virtual LRESULT OnTimer(HWND, UINT, WPARAM, LPARAM) = 0;	
+	virtual LRESULT OnHScroll(HWND, UINT, WPARAM, LPARAM) = 0;
+	virtual LRESULT OnVScroll(HWND, UINT, WPARAM, LPARAM) = 0;
 	//////////////////////////////////////////////////////////////////////////	
 protected:
 	HWND m_hWnd;	
 	HINSTANCE m_hInstance;	
+	HWND m_hWndCreator;
 };
 
 #endif //HWX_WINDOW_H

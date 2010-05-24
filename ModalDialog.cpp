@@ -79,4 +79,3 @@ LRESULT ModalDialog::OnSettingChange(HWND hDlg, UINT message, WPARAM wParam, LPA
 {
 	return ERROR_SUCCESS;
 }
-

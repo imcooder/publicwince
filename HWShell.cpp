@@ -3,7 +3,7 @@
 #include <ShlObj.h>
 
 
-#ifdef WINCE
+#ifdef UNDER_CE
 #pragma comment(lib, "Ceshell.lib")
 #endif
 

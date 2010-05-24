@@ -393,7 +393,7 @@ void WINAPI DebugStringW( LPCWSTR pszDebugInfo)
 	}
 #endif	
 }
-#ifndef WINCE
+
 void WINAPI DebugStringA( LPCSTR pszDebugInfo)
 {
 	if (!pszDebugInfo)
@@ -406,11 +406,12 @@ void WINAPI DebugStringA( LPCSTR pszDebugInfo)
 	}
 #else
 	{
+#ifndef UNDER_CE
 		OutputDebugStringA(pszDebugInfo);
+#endif
 	}
 #endif	
 }
-#endif
 
 
 void WINAPI XUE_DebugStringFileW(LPCWSTR pszFile, LPCWSTR pszDebugInfo)
@@ -683,3 +684,26 @@ _Error:
 	return blRet;
 }
 
+DLLXEXPORT void WINAPI XUE_AssertPrintW( LPCWSTR pszFormat, ... )
+{
+	WCHAR szBuffer[MAX_SIZE_M] = {0};	
+	LONG nLen = 0;
+	va_list argList;
+	va_start(argList, pszFormat);
+	StringCchVPrintfW(szBuffer, _countof(szBuffer), pszFormat, argList); 
+	DebugStringW(szBuffer);
+	va_end(argList);
+	DebugBreak();
+}
+
+DLLXEXPORT void WINAPI XUE_AssertPrintA( LPCSTR pszFormat, ... )
+{
+	CHAR szBuffer[MAX_SIZE_M] = {0};	
+	LONG nLen = 0;
+	va_list argList;
+	va_start(argList, pszFormat);
+	StringCchVPrintfA(szBuffer, _countof(szBuffer), pszFormat, argList); 
+	DebugStringA(szBuffer);
+	va_end(argList);
+	DebugBreak();
+}

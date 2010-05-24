@@ -40,6 +40,19 @@ void WINAPI NormalizeRect(LPRECT pRect)
 		_swap(pRect->top, pRect->bottom);
 	}
 }
+BOOL WINAPI SetRect( LPRECT lprc)
+{
+	ASSERT(lprc);
+	if (!lprc)
+	{		
+		return FALSE;
+	}
+	lprc->left = 0;
+	lprc->top = 0;
+	lprc->right = 0;
+	lprc->bottom = 0;
+	return TRUE;
+}
 BOOL WINAPI SetRect (LPRECT lprc,POINT point, SIZE size)
 {
 	ASSERT(lprc);
@@ -64,6 +77,7 @@ BOOL WINAPI SetRect (LPRECT lprc,POINT topLeft, POINT bottomRight)
 	lprc->bottom = bottomRight.y; 
 	return TRUE;
 }
+
 
 
 LONG WINAPI RectWidth(const LPRECT lprc) 
@@ -242,7 +256,7 @@ void WINAPI RectCenterMoveTo( LPRECT pRect, POINT pointCenter)
 	RectCenterMoveTo(pRect, pointCenter.x, pointCenter.y);
 	return;
 }
-void WINAPI ZoomRect( LPRECT lpRect, float fx, float fy)
+void WINAPI ZoomRect( LPRECT lpRect, double fx, double fy)
 {
 	ASSERT(lpRect);
 	if (!lpRect)
@@ -265,5 +279,161 @@ BOOL WINAPI IsRectEqual( const RECT* pRectA, const RECT* pRectB)
 		return FALSE;
 	}
 	return pRectA->left == pRectB->left && pRectA->top == pRectB->top && pRectA->right == pRectB->right && pRectA->bottom == pRectB->bottom;
+}
+
+void WINAPI RectMap( const LPRECT pRectA, LPRECT pRectB)
+{
+	ASSERT(pRectA);
+	ASSERT(pRectB);
+	if (!pRectA || !pRectB)
+	{
+		return;
+	}
+	if (IsRectEmpty(pRectA) || IsRectEmpty(pRectB))
+	{
+		return;
+	}
+	if (IsRectEqual(pRectA, pRectB))
+	{
+		return;
+	}		
+	RECT rtTmpDest = *pRectA;
+	POINT pointCenterDest = {(pRectA->left + pRectA->right) >> 1, (pRectA->top + pRectA->bottom) >> 1};
+	POINT pointCenterSrc	= {(pRectB->left + pRectB->right) >> 1, (pRectB->top + pRectB->bottom) >> 1};
+	LONG nAngleDest = ((pRectA->right - pRectA->left) * (pRectB->bottom - pRectB->top));
+	LONG nAngleSrc = ((pRectB->right - pRectB->left) * (pRectA->bottom - pRectA->top));
+	if (_abs(nAngleDest) >=  _abs(nAngleSrc))
+	{
+		rtTmpDest.left = 0;
+		rtTmpDest.right = pRectB->right - pRectB->left;
+		LONG nHeight = (pRectA->bottom - pRectA->top) * (rtTmpDest.right - rtTmpDest.left) / (pRectA->right - pRectA->left);
+		rtTmpDest.top = 0;
+		rtTmpDest.bottom = nHeight;
+		
+	}
+	else
+	{	
+		rtTmpDest.top = 0;
+		rtTmpDest.bottom = pRectB->bottom - pRectB->top;
+		LONG nWidth = (pRectA->right - pRectA->left) * (rtTmpDest.bottom - rtTmpDest.top) / (pRectA->bottom - pRectA->top);
+		rtTmpDest.left = 0;
+		rtTmpDest.right = nWidth;		
+		
+	}		
+	RectCenterMoveTo(&rtTmpDest, pointCenterSrc.x, pointCenterSrc.y);	
+	*pRectB = rtTmpDest;		
+}
+
+void WINAPI ZeroRect( LPRECT pRect)
+{
+	ASSERT(pRect);	
+	if (!pRect)
+	{
+		return;
+	}
+	pRect->left = pRect->top = pRect->right = pRect->bottom = 0;
+}
+
+
+void WINAPI RectMoveToX(LPRECT lpRect, int x)
+{
+	ASSERT(lpRect);	
+	if (!lpRect)
+	{
+		return;
+	}
+	lpRect->right = lpRect->right - lpRect->left + x;
+	lpRect->left = x;
+}
+
+void WINAPI RectMoveToY(LPRECT lpRect, int y)
+{
+	ASSERT(lpRect);
+	if (!lpRect)
+	{		
+		return;
+	}	
+	lpRect->bottom = lpRect->bottom - lpRect->top + y;
+	lpRect->top = y;
+}
+
+
+
+void WINAPI RectMoveToXY(LPRECT lpRect, int x, int y)
+{
+	ASSERT(lpRect);
+	if (!lpRect)
+	{		
+		return;
+	}
+	lpRect->right = lpRect->right - lpRect->left + x;
+	lpRect->left = x;
+	lpRect->bottom = lpRect->bottom - lpRect->top + y;
+	lpRect->top = y;
+}
+void WINAPI RectMoveLeftTo( LPRECT lpRect, INT x )
+{
+	ASSERT(lpRect);	
+	if (!lpRect)
+	{
+		return;
+	}
+	lpRect->right = lpRect->right - lpRect->left + x;
+	lpRect->left = x;
+}
+
+void WINAPI RectMoveTopTo( LPRECT lpRect, INT y)
+{
+	ASSERT(lpRect);
+	if (!lpRect)
+	{		
+		return;
+	}	
+	lpRect->bottom = lpRect->bottom - lpRect->top + y;
+	lpRect->top = y;
+}
+void WINAPI RectMoveLeftTopToXY(LPRECT lpRect, int x, int y)
+{
+	ASSERT(lpRect);
+	if (!lpRect)
+	{		
+		return;
+	}
+	lpRect->right = lpRect->right - lpRect->left + x;
+	lpRect->left = x;
+	lpRect->bottom = lpRect->bottom - lpRect->top + y;
+	lpRect->top = y;
+}
+void WINAPI RectMoveCenterToXY( LPRECT lpRect, int x, int y )
+{
+	ASSERT(lpRect);
+	if (!lpRect)
+	{
+		return;
+	}	
+	RectMoveCenterToX(lpRect, x);
+	RectMoveCenterToY(lpRect, y);
+}
+
+void WINAPI RectMoveCenterToX( LPRECT lpRect, int x )
+{
+	ASSERT(lpRect);
+	if (!lpRect)
+	{
+		return;
+	}	
+	lpRect->right = x + ((lpRect->right - lpRect->left) >> 1);
+	lpRect->left = 2 * x - lpRect->right;	
+}
+
+void WINAPI RectMoveCenterToY( LPRECT lpRect, int y )
+{
+	ASSERT(lpRect);
+	if (!lpRect)
+	{
+		return;
+	}	
+	lpRect->bottom = y + ((lpRect->bottom - lpRect->top) >> 1);
+	lpRect->top = 2 * y - lpRect->bottom;	
 }
 

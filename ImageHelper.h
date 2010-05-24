@@ -4,11 +4,11 @@
 
 #include <Imaging.h>
 
-class CImagingHelper
+class CXUE_ImageHelper
 {
 public:
-	CImagingHelper();
-	virtual ~CImagingHelper();
+	CXUE_ImageHelper();
+	virtual ~CXUE_ImageHelper();
 	//
 	void ReleaseImage();	
 	//Create Image

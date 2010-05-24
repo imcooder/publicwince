@@ -13,6 +13,7 @@
 BOOL WINAPI IsRectNULL(const RECT *);
 BOOL WINAPI MoveRectTo(LPRECT, int, int);
 void WINAPI NormalizeRect(LPRECT);
+BOOL WINAPI SetRect(LPRECT);
 BOOL WINAPI SetRect (LPRECT ,POINT, SIZE);
 BOOL WINAPI SetRect (LPRECT,POINT, POINT);
 LONG WINAPI RectWidth(const LPRECT);
@@ -33,5 +34,16 @@ void WINAPI RectMoveTo(LPRECT, int, int);
 void WINAPI RectMoveTo(LPRECT, POINT);
 void WINAPI RectCenterMoveTo(LPRECT, int, int);
 void WINAPI RectCenterMoveTo(LPRECT, POINT);
-void WINAPI ZoomRect(LPRECT, float, float);
+void WINAPI ZoomRect(LPRECT, double, double);
+void WINAPI RectMap(const LPRECT, LPRECT);
+void WINAPI ZeroRect(LPRECT);
+void WINAPI RectMoveToX(LPRECT, int);
+void WINAPI RectMoveToX(LPRECT, int);
+void WINAPI RectMoveToXY(LPRECT, int, int);
+void WINAPI RectMoveLeftTo(LPRECT, INT);
+void WINAPI RectMoveTopTo(LPRECT, INT);
+void WINAPI RectMoveLeftTopToXY(LPRECT, int, int);
+void WINAPI RectMoveCenterToXY(LPRECT, int, int);
+void WINAPI RectMoveCenterToX(LPRECT, int);
+void WINAPI RectMoveCenterToY(LPRECT, int);
 #endif //HWX_RECT_H

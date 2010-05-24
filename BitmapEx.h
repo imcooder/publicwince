@@ -1,0 +1,6 @@
+
+
+#ifndef HWX_FILE_BITMAPEX_H
+#define HWX_FILE_BITMAPEX_H
+
+#endif //HWX_FILE_BITMAPEX_H

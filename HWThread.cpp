@@ -58,7 +58,7 @@ BOOL CHWThread::Terminate()
 				}
 				break;
 			case WAIT_FAILED:
-				{
+				{ 
 
 				}
 				break;

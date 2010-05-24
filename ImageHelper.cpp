@@ -8,7 +8,7 @@
 #include <Imaging.h>
 
 
-CImagingHelper::CImagingHelper(void)
+CXUE_ImageHelper::CXUE_ImageHelper(void)
 : m_pbBuffer(NULL),
 m_cbBuffer(0),
 m_pImage(NULL)
@@ -17,12 +17,12 @@ m_pImage(NULL)
 }
 
 
-CImagingHelper::~CImagingHelper(void)
+CXUE_ImageHelper::~CXUE_ImageHelper(void)
 {
 	ReleaseImage();
 }
 
-void CImagingHelper::ReleaseImage()
+void CXUE_ImageHelper::ReleaseImage()
 {	
 	if (m_pImage)
 	{
@@ -40,7 +40,7 @@ void CImagingHelper::ReleaseImage()
 }
 
 
-BOOL CImagingHelper::LoadImage(LPCTSTR pszFullName)
+BOOL CXUE_ImageHelper::LoadImage(LPCTSTR pszFullName)
 {
 	BOOL blRet = TRUE;	
 	HANDLE hFile = NULL;
@@ -81,7 +81,7 @@ BOOL CImagingHelper::LoadImage(LPCTSTR pszFullName)
 	return blRet;
 }
 
-BOOL CImagingHelper::LoadImageFromRes( HMODULE hModule, LPCTSTR lpName, LPCTSTR lpType )
+BOOL CXUE_ImageHelper::LoadImageFromRes( HMODULE hModule, LPCTSTR lpName, LPCTSTR lpType )
 {
 	BOOL blRet = TRUE;
 	HRSRC hRes = NULL;
@@ -124,7 +124,7 @@ BOOL CImagingHelper::LoadImageFromRes( HMODULE hModule, LPCTSTR lpName, LPCTSTR 
 	return blRet;	
 }
 
-BOOL CImagingHelper::LoadImageFromBuffer( LPVOID pvBuffer, DWORD dwSize )
+BOOL CXUE_ImageHelper::LoadImageFromBuffer( LPVOID pvBuffer, DWORD dwSize )
 {
 	BOOL blRet = TRUE;
 	if (!pvBuffer || !dwSize )
@@ -154,7 +154,7 @@ BOOL CImagingHelper::LoadImageFromBuffer( LPVOID pvBuffer, DWORD dwSize )
 	return blRet;
 }
 
-BOOL CImagingHelper::CreateIImage()
+BOOL CXUE_ImageHelper::CreateIImage()
 {
 	BOOL blRet = TRUE;
 	IImagingFactory	*pImgFactory = NULL;
@@ -181,7 +181,7 @@ BOOL CImagingHelper::CreateIImage()
 	}	
 	return blRet;
 }
-BOOL CImagingHelper::Draw (HDC hDC, const RECT* dstRect,const RECT* srcRect)
+BOOL CXUE_ImageHelper::Draw (HDC hDC, const RECT* dstRect,const RECT* srcRect)
 {
 	BOOL blRet = TRUE;
 	if (!m_pImage)
@@ -214,13 +214,13 @@ BOOL CImagingHelper::Draw (HDC hDC, const RECT* dstRect,const RECT* srcRect)
 	return blRet;
 }
 
-SIZE CImagingHelper::GetImageSize()
+SIZE CXUE_ImageHelper::GetImageSize()
 {
 	SIZE sz = {m_imgInfo.Width, m_imgInfo.Height};
 	return sz;
 }
 
-BOOL CImagingHelper::UpdateImageInfo()
+BOOL CXUE_ImageHelper::UpdateImageInfo()
 {
 	BOOL blRet = TRUE;
 	memset(&m_imgInfo, 0, sizeof(m_imgInfo));
@@ -238,12 +238,12 @@ BOOL CImagingHelper::UpdateImageInfo()
 	return blRet;
 }
 
-LONG CImagingHelper::GetImageWidth()
+LONG CXUE_ImageHelper::GetImageWidth()
 {
 	return m_imgInfo.Width;
 }
 
-LONG CImagingHelper::GetImageHeight()
+LONG CXUE_ImageHelper::GetImageHeight()
 {
 	return m_imgInfo.Height;
 }

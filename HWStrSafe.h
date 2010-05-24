@@ -14,7 +14,7 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 
 #ifdef _UNICODE
 
-#define StringToken			StringTokenW	
+#define StringToken			StringTokW	
 #define StringMid				StringMidW
 #define StringRight			StringRightW
 #define StringLeft			StringLeftW
@@ -26,11 +26,19 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 #define StringReverse		StringReverseW
 #define StringCchToGuid	StringCchToGuidW
 #define StringCchFromGuid	StringCchFromGuidW
-
-
+#define StringCompare		StringCompareW
+#define StringCompareNoCase				StringCompareNoCaseW
+#define StringFirstBelongTo				StringFirstBelongToW
+#define StringFirstNotBelongTo		StringFirstNotBelongToW
+#define StringToLong							StringToLongW
+#define StringToFloat							StringToFloatW
+#define StringToDword							StringToDwordW
+#define StringPathAppend					StringCchPathAppendW
+#define StringChrChr							StringChrChrW
+#define StringSplitPath						StringSplitPathW
 #else
 
-#define StringToken			StringTokenA
+#define StringToken			StringTokA
 #define StringMid				StringMidA
 #define StringRight			StringRightA
 #define StringLeft			StringLeftA
@@ -42,7 +50,16 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 #define StringReverse		StringReverseA
 #define StringCchToGuid	StringCchToGuidA
 #define StringCchFromGuid	StringCchFromGuidA
-
+#define StringCompare		StringCompareA
+#define StringCompareNoCase				StringCompareNoCaseA
+#define StringFirstBelongTo				StringFirstBelongToA
+#define StringFirstNotBelongTo		StringFirstNotBelongToA
+#define StringToLong							StringToLongA
+#define StringToFloat							StringToFloatA
+#define StringToDword							StringToDwordA
+#define StringPathAppend					StringCchPathAppendA
+#define StringChrChr							StringChrChrA
+#define StringSplitPath						StringSplitPathA
 #endif
 
 
@@ -51,8 +68,8 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 extern "C"{
 #endif
 
-	CHAR*		WINAPI StringTokenA(CHAR*,	const CHAR*,	CHAR **);
-	WCHAR*	WINAPI StringTokenW(WCHAR*,	const WCHAR*,	WCHAR **);
+	CHAR*		WINAPI StringTokA(CHAR*,	const CHAR*,	CHAR **);
+	WCHAR*	WINAPI StringTokW(WCHAR*,	const WCHAR*,	WCHAR **);
 	LONG		WINAPI StringMidW(LPWSTR pszString, LONG nIndex, UINT nCount);
 	LONG		WINAPI StringMidA(LPSTR pszString, LONG nIndex, UINT nCount);
 	LONG		WINAPI StringRightW(LPWSTR pszString, UINT nCount);
@@ -77,6 +94,26 @@ extern "C"{
 	LONG		WINAPI StringCchToGuidA(LPCSTR pszString, LONG nCount, GUID* pGUID);
 	LONG		WINAPI StringCchFromGuidW(const GUID* pGUID, LPWSTR pszString, LONG nCount);
 	LONG		WINAPI StringCchFromGuidA(const GUID* pGUID, LPSTR pszString, LONG nCount);
+	LONG		WINAPI StringCompareA(LPCSTR,	LPCSTR);
+	LONG		WINAPI StringCompareW(LPCWSTR,	LPCWSTR);
+	LONG		WINAPI StringCompareNoCaseA(LPCSTR,	LPCSTR);
+	LONG		WINAPI StringCompareNoCaseW(LPCWSTR,	LPCWSTR);
+	LONG		WINAPI StringFirstBelongToA(LPCSTR, LPCSTR);
+	LONG		WINAPI StringFirstBelongToW(LPCWSTR, LPCWSTR);
+	LONG		WINAPI StringFirstNotBelongToW( LPCWSTR, LPCWSTR);
+	LONG		WINAPI StringFirstNotBelongToA( LPCSTR, LPCSTR);
+	LONG		WINAPI StringToLongA(LPCSTR);
+	LONG		WINAPI StringToLongW(LPCWSTR);
+	float		WINAPI StringToFloatA(LPCSTR);
+	float		WINAPI StringToFloatW(LPCWSTR);
+	DWORD		WINAPI StringToDwordA(LPCSTR);
+	DWORD		WINAPI StringToDwordW(LPCWSTR);
+	BOOL		WINAPI StringCchPathAppendW( LPWSTR, DWORD, LPCWSTR);
+	BOOL		WINAPI StringCchPathAppendA( LPSTR, DWORD, LPCSTR);
+	BOOL		WINAPI StringChrChrW(LPWSTR, WCHAR, WCHAR);
+	BOOL		WINAPI StringChrChrA(LPSTR, CHAR, CHAR);
+	void		WINAPI StringSplitPathA(const CHAR *,  CHAR *pszDrive, size_t, CHAR *pszDir, size_t,  CHAR *pszFileName, size_t,  CHAR *pszExt, size_t);
+	void		WINAPI StringSplitPathW(const WCHAR *,  WCHAR *pszDrive, size_t, WCHAR *pszDir, size_t,  WCHAR *pszFileName, size_t,  WCHAR *pszExt, size_t);
 #ifdef __cplusplus
 }
 #endif
