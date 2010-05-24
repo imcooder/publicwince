@@ -9,14 +9,14 @@
 #include "Window.h"
 #include <Dialog.h>
 #include <windef.h>
-class ModalDialog  : public _Dialog
+class ModalDialog  : public CXUE_Dialog
 {
 protected:	
 	ModalDialog();	
 public:
 	virtual ~ModalDialog();	
 public:
-	virtual LRESULT Create(HINSTANCE, LPCTSTR, HWND);
+	virtual LRESULT Create(HINSTANCE, LPCTSTR, HWND);	
 	virtual LRESULT DestroyWindow();
 	
 protected:	

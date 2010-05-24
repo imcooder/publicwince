@@ -9,7 +9,6 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 #ifndef HWX_HDCEX_H
 #define HWX_HDCEX_H
 
-
 class CXUE_BitmapLock
 {
 public:	
@@ -26,10 +25,12 @@ class CXUE_FontLock
 public:
 	CXUE_FontLock(HDC, HFONT = NULL);
 	CXUE_FontLock(HDC, HFONT, COLORREF clrTextColor); 
+	CXUE_FontLock(HDC, const LOGFONT*); 
 	virtual ~CXUE_FontLock();	
 	void SetColor(COLORREF clrTextColor);		
-	void SetFontSize(LONG);
+	void SetFontHeight(LONG);
 	void SetFontFaceName(LPCTSTR);
+	LONG GetFontHeight();
 protected:
 	void ReplaceCurrentFont(const LOGFONT*);
 protected:
@@ -70,39 +71,68 @@ protected:
 	HBRUSH m_hOldBrush; 
 };
 
+class CXUE_StockObjectLock
+{
+public:	
+	CXUE_StockObjectLock(HDC hDC, int);	
+	virtual ~CXUE_StockObjectLock();	
+protected:	
+	HDC    m_hDC;
+	HGDIOBJ  m_hGdiObj; 
+	HGDIOBJ m_hOldGdiObj; 
+};
 
 class CXUE_BkModeLock
 {
 public:	
-	CXUE_BkModeLock(HDC hDC, BOOL);	
+	CXUE_BkModeLock(HDC hDC, int);	
 	virtual ~CXUE_BkModeLock();	
-	void SetBkMode(BOOL);
+	void SetBkMode(int);
 protected:	
 	HDC    m_hDC;
 	LONG	 m_nBkModeOld; 	
 };
-
-
-class CXUE_CompatibleDCLock
+class CXUE_SafeCompatibleBitmap
 {
 public:		
-	CXUE_CompatibleDCLock(HDC, HBITMAP hBitmap); 	
-	virtual ~CXUE_CompatibleDCLock();
-	HDC GetHDC();
+	CXUE_SafeCompatibleBitmap(HDC, INT, INT); 		
+	virtual ~CXUE_SafeCompatibleBitmap();
+	HBITMAP GetSafeHBitmap();
+protected:	
 protected:
+	HBITMAP m_hBitmap;	
+	HDC m_hDC;
+};
+
+class CXUE_SafeCompatibleDC
+{
+public:		
+	CXUE_SafeCompatibleDC(HDC, HBITMAP hBitmap = NULL); 
+	CXUE_SafeCompatibleDC(HDC, LPCTSTR);
+	CXUE_SafeCompatibleDC(HDC, HINSTANCE, LONG); 
+	virtual ~CXUE_SafeCompatibleDC();
+	HDC GetSafeHdc();
+	LONG GetHeight();
+	LONG GetWidth();
+protected:
+	void Construct(HDC, HBITMAP);
+	void Destruct();
+protected:
+	HBITMAP m_hBitmap;
 	HBITMAP m_hOldBitmap; 
 	HDC m_hMemDC;
+	BITMAP  m_Bitmap;
 };
 
 
-class CXUE_MemDCLock
+class CXUE_SafeMemDC
 {
-public:
-	CXUE_MemDCLock(HDC hDestDC, const LPRECT prcPaint);
-	virtual ~CXUE_MemDCLock();
+public:	
+	CXUE_SafeMemDC(HDC hDestDC, const LPRECT prcPaint = NULL);
+	virtual ~CXUE_SafeMemDC();
 	HDC	GetSafeHdc();
 	BOOL Clear(COLORREF);
-	BOOL SwapBuffer();
+	BOOL SwapDC();
 	//////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
@@ -114,20 +144,20 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	HBRUSH GetHalftoneBrush();
 protected:
+	void Construct(HDC hDestDC, const LPRECT);
+protected:
 	HDC			m_hDC;
 	HDC     m_hDestDC;   
 	HBITMAP m_hBitmap;    
 	RECT		m_rtPaint;      
-	HGDIOBJ m_hOldBitmap;
-	HRGN		m_hClipRgn;
-	HRGN		m_hClipRgnOld;
+	HGDIOBJ m_hOldBitmap;	
 };
 
-class CXUE_PaintDCLock
+class CXUE_SafePaintDC
 {
 public:		
-	CXUE_PaintDCLock(HWND hWnd);
-	virtual ~CXUE_PaintDCLock();
+	CXUE_SafePaintDC(HWND hWnd);
+	virtual ~CXUE_SafePaintDC();
 	HDC GetSafeHdc();
 protected:
 	HWND m_hWnd;
@@ -135,6 +165,27 @@ protected:
 	HDC m_hDC;
 };
 
+class CXUE_SafeClientDC
+{
+public:		
+	CXUE_SafeClientDC(HWND hWnd);
+	virtual ~CXUE_SafeClientDC();
+	HDC GetSafeHdc();
+protected:
+	HWND m_hWnd;
+	HDC m_hDC;
+};
+
+class CXUE_SafeWindowDC
+{
+public:		
+	CXUE_SafeWindowDC(HWND hWnd);
+	virtual ~CXUE_SafeWindowDC();
+	HDC GetSafeHdc();
+protected:
+	HWND m_hWnd;
+	HDC m_hDC;
+};
 class CXUE_SetViewportOrgExLock
 {
 public:		
@@ -145,7 +196,15 @@ protected:
 	HDC m_hDC;
 	POINT m_PointOld;
 };
-
-
+class CXUE_StretchBltModeLock
+{
+public:		
+	CXUE_StretchBltModeLock(HDC, INT); 	
+	virtual ~CXUE_StretchBltModeLock();	
+	void SetStretchBltMode(INT);
+protected:	
+	HDC m_hDC;
+	INT m_nStretchModeOld;
+};
 
 #endif //HWX_HDCEX_H

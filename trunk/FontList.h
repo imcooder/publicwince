@@ -7,11 +7,11 @@
 
 #include <list>
 
-class FontList 
+class CXUE_FontList 
 {
 public:
-	FontList();
-	virtual ~FontList();
+	CXUE_FontList();
+	virtual ~CXUE_FontList();
 	void Create(BYTE = DEFAULT_CHARSET);
 	UINT GetCount() const;
 	LPLOGFONT GetFontByIndex(UINT);

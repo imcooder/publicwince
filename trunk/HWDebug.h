@@ -60,7 +60,13 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 #endif
 #endif
 
-
+#ifndef HWTRACEAT
+#if defined(HWDEBUG)
+#define HWTRACEAT		XTraceAt
+#else 
+#define HWTRACEAT		__noop
+#endif
+#endif
 
 #ifndef HWTRACEEX
 #if defined(HWDEBUG)
@@ -94,6 +100,9 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 #define XTrace		XUE_TraceA
 #endif
 
+
+#define XTraceAt(exp) ((XTrace(TEXT("TRACE: %s line %d: "),TEXT(__FILE__),__LINE__), XTrace exp),1:0)
+
 #ifdef UNICODE
 #define XTraceEx		XUE_TraceExW
 #else 
@@ -108,6 +117,52 @@ Copyright (c) 2002-2003 汉王科技有限公司. 版权所有.
 #define REMOTETRACE		HWRemoteTraceA
 #endif
 
+#if defined(HWDEBUG)
+
+#define XUE_ASSERT_AT(exp, file, line) (void)( (exp) || (HWTRACE(exp, file, line), DebugBreak(), 0 ) )
+#define XUE_ASSERT(exp) XUE_ASSERT_AT(exp, __FILE__, __LINE__)
+
+#else
+
+#define assert(exp)	((void)0)
+
+#endif
+#ifndef ERRORMSG
+#define ERRORMSG(cond, printf_exp)	 ((cond)?(XTrace(TEXT("ERROR: %s line %d: "), TEXT(__FILE__),__LINE__), XTrace printf_exp),1:0)
+#endif
+
+
+#ifndef TRACEERROR
+#define TRACEERROR(nErr)	\
+if((nErr))	{							\
+LPTSTR pszMsg = NULL;		XTrace(TEXT("ERROR: %s line %d: "), TEXT(__FILE__), __LINE__);					\
+::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, (nErr), 0, (LPTSTR)&pszMsg, 0, NULL);							\
+if (pszMsg)	{	XTrace(pszMsg);	}			\
+::LocalFree(pszMsg);	pszMsg = NULL;	\
+}							
+
+						
+#endif
+
+
+#ifndef DEBUGMSG
+#ifdef HWDEBUG
+
+#define DEBUGMSG(cond,printf_exp)   ((void)((cond)?(XTrace printf_exp),1:0))
+
+#else // DEBUG
+
+#define DEBUGMSG(cond,printf_exp) ((void)0)
+
+#endif // DEBUG
+
+#endif
+
+#ifndef RETAILMSG
+
+#define RETAILMSG(cond,printf_exp)   ((cond)?(XTrace printf_exp), 1:0)
+
+#endif
 
 
 #ifdef __cplusplus
@@ -124,6 +179,9 @@ extern "C"
 	DLLXEXPORT void WINAPI		XUE_RemoteTraceW(LPCWSTR, ...);
 	DLLXEXPORT void WINAPI		XUE_DebugStringFileA(LPCSTR, LPCSTR);
 	DLLXEXPORT void WINAPI		XUE_DebugStringFileW(LPCWSTR, LPCWSTR);
+
+	DLLXEXPORT void WINAPI		XUE_AssertPrintW(LPCWSTR, ...);	
+	DLLXEXPORT void WINAPI		XUE_AssertPrintA(LPCSTR, ...);	
 #ifdef __cplusplus
 }
 #endif

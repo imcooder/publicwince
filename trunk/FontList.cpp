@@ -14,19 +14,19 @@ BOOL LogfontCmp (LPLOGFONT pFontA, LPLOGFONT pFontB )
 }
 
 
-FontList::FontList()
+CXUE_FontList::CXUE_FontList()
 {	
 
 }
 
-FontList::~FontList()
+CXUE_FontList::~CXUE_FontList()
 {
 	FreeFonts();
 }
 
-BOOL CALLBACK FontList::EnumFontFamExProc(ENUMLOGFONTEX* pelf,NEWTEXTMETRICEX* lpntm,  DWORD dwFontType, LPARAM lParam)
+BOOL CALLBACK CXUE_FontList::EnumFontFamExProc(ENUMLOGFONTEX* pelf,NEWTEXTMETRICEX* lpntm,  DWORD dwFontType, LPARAM lParam)
 {
-  FontList* pFontEnum = (FontList*)lParam;
+  CXUE_FontList* pFontEnum = (CXUE_FontList*)lParam;
   if (pFontEnum)
   {
     if (pFontEnum->AddFont(&pelf->elfLogFont, dwFontType))
@@ -38,7 +38,7 @@ BOOL CALLBACK FontList::EnumFontFamExProc(ENUMLOGFONTEX* pelf,NEWTEXTMETRICEX* l
 }
 
 
-void FontList::Create(BYTE nCharSet)
+void CXUE_FontList::Create(BYTE nCharSet)
 {
 	FreeFonts(); 
 	LOGFONT logfont;
@@ -53,7 +53,7 @@ void FontList::Create(BYTE nCharSet)
 }
 
 
-BOOL FontList::AddFont(const LOGFONT* pLF, DWORD dwType)
+BOOL CXUE_FontList::AddFont(const LOGFONT* pLF, DWORD dwType)
 {    
   if (!pLF)
   {
@@ -74,7 +74,7 @@ BOOL FontList::AddFont(const LOGFONT* pLF, DWORD dwType)
   return TRUE;
 }
 
-BOOL FontList::DoesFontExist(LPCTSTR pszFaceName)
+BOOL CXUE_FontList::DoesFontExist(LPCTSTR pszFaceName)
 {	
 	if (!pszFaceName)
 	{
@@ -84,7 +84,7 @@ BOOL FontList::DoesFontExist(LPCTSTR pszFaceName)
 	return !!pLogfont;
 }
 
-LPLOGFONT FontList::GetLogFont(LPCTSTR pszFaceName)
+LPLOGFONT CXUE_FontList::GetLogFont(LPCTSTR pszFaceName)
 {
 	std::list<LPLOGFONT>::iterator itlstTravel = m_listpFonts.begin();
   while(itlstTravel != m_listpFonts.end())
@@ -102,7 +102,7 @@ LPLOGFONT FontList::GetLogFont(LPCTSTR pszFaceName)
   return NULL;
 }
 
-void FontList::FreeFonts()
+void CXUE_FontList::FreeFonts()
 {
 	std::list<LPLOGFONT>::iterator itlstTravel = m_listpFonts.begin();
 	while (itlstTravel != m_listpFonts.end())
@@ -113,12 +113,12 @@ void FontList::FreeFonts()
 	m_listpFonts.clear();
 }
 
-UINT FontList::GetCount() const
+UINT CXUE_FontList::GetCount() const
 {
 	return m_listpFonts.size();
 }
 
-LPLOGFONT FontList::GetFontByIndex( UINT nIdx)
+LPLOGFONT CXUE_FontList::GetFontByIndex( UINT nIdx)
 {
 	std::list<LPLOGFONT>::iterator itlstTravel = m_listpFonts.begin();
 	while (itlstTravel != m_listpFonts.end())

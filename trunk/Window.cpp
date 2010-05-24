@@ -8,11 +8,13 @@ _Window::_Window()
 {
 	m_hInstance = NULL;
 	m_hWnd = NULL;	
+	m_hWndCreator = NULL;
 }
 
 _Window::~_Window()
 {	
 	DestroyWindow();	
+	m_hWndCreator = NULL;
 }
 
 BOOL _Window::IsVisible() const
@@ -119,9 +121,13 @@ BOOL _Window::ResizeWindow( SIZE sz)
 
 HWND _Window::GetParent() const
 {
-	return ::GetParent(m_hWnd);
+	return GetParent(m_hWnd);
 }
 
+HWND _Window::GetParent( HWND hWnd)
+{
+	return ::GetParent(hWnd);
+}
 
 BOOL _Window::PostMessage( UINT Msg, WPARAM wParam,LPARAM lParam )
 {
@@ -221,6 +227,67 @@ BOOL _Window::SetWindowText(HWND hWnd, LPCTSTR pszTitle)
 	}
 	return FALSE;
 }
+BOOL _Window:: ClientToScreen( LPRECT pRect)
+{
+	if (!pRect)
+	{
+		return FALSE;
+	}	
+	return ClientToScreen(GetSafeHwnd(), pRect);
+}
+BOOL _Window:: ClientToScreen( HWND hWnd, LPRECT pRect)
+{
+	if (!pRect)
+	{
+		return FALSE;
+	}
+	POINT point = {0, 0};
+	point.x = pRect->left;
+	point.y = pRect->top;
+	::ClientToScreen(hWnd, &point);
+	pRect->left= point.x;
+	pRect->top = point.y;
+
+	point.x = pRect->right;
+	point.y = pRect->bottom;
+	::ClientToScreen(hWnd, &point);
+	pRect->right= point.x;
+	pRect->bottom = point.y;
+	return TRUE;
+}
+
+
+BOOL _Window::ScreenToClient( LPRECT pRect)
+{
+	if (!pRect)
+	{
+		return FALSE;
+	}	
+	return ScreenToClient(GetSafeHwnd(), pRect);
+}
+
+BOOL _Window::ScreenToClient( HWND hWnd, LPRECT pRect)
+{
+	if (!pRect)
+	{
+		return FALSE;
+	}
+	POINT point = {0, 0};
+	point.x = pRect->left;
+	point.y = pRect->top;
+	::ScreenToClient(hWnd, &point);
+	pRect->left= point.x;
+	pRect->top = point.y;
+
+	point.x = pRect->right;
+	point.y = pRect->bottom;
+	::ScreenToClient(hWnd, &point);
+	pRect->right= point.x;
+	pRect->bottom = point.y;
+	return TRUE;
+}
+
+
 BOOL _Window::EnableWindow( BOOL bEnable )
 {
 	if (IsWindow())
@@ -310,4 +377,28 @@ LONG _Window::GetID(HWND hWnd)
 		return 0;
 	}
 	return GetWindowLong(hWnd, GWL_ID);	
+}
+
+HWND _Window::GetOwner() const
+{
+	return GetOwner(GetSafeHwnd());
+}
+
+HWND _Window::GetOwner( HWND hWnd)
+{
+	HWND hOwner = NULL;		;
+	if (::GetWindowLong(hWnd, GWL_STYLE) & WS_CHILD)
+	{
+		hOwner = GetParent(hWnd);
+	}
+	else
+	{
+		hOwner = GetWindow(hWnd, GW_OWNER);
+	}
+	return hOwner;
+}
+
+HWND _Window::GetCreator() const
+{
+	return m_hWndCreator;
 }
