@@ -707,3 +707,59 @@ DLLXEXPORT void WINAPI XUE_AssertPrintA( LPCSTR pszFormat, ... )
 	va_end(argList);
 	DebugBreak();
 }
+DLLXEXPORT void WINAPI XUE_TraceError(UINT_PTR nError)
+{
+	LPVOID lpMsgBuf = NULL;
+	if (0 == FormatMessage (FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, nError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR) &lpMsgBuf,	0, NULL))
+	{
+		return ;
+	}	
+	DEBUGMSG (1, (L"There was an error [%s]\n", (LPCTSTR)lpMsgBuf));	
+	if (lpMsgBuf)
+	{
+		LocalFree( lpMsgBuf );	
+		lpMsgBuf = NULL;
+	}
+}
+
+DLLXEXPORT void WINAPI XUE_TraceLastError()
+{
+	XUE_TraceError(GetLastError());
+}
+
+
+DLLXEXPORT void WINAPI XUE_DumpRegKey(DWORD dwZone,	HKEY hKey)
+{
+	DWORD dwIndex = 0;
+	WCHAR szValueName[MAX_PATH] = {0};
+	DWORD dwValueNameSize = MAX_PATH;
+	BYTE pValueData[256] = {0};
+	DWORD dwType;
+	DWORD dwValueDataSize = sizeof(pValueData);
+
+	DEBUGMSG(dwZone, (TEXT("DumpRegKey\r\n")));
+	while (ERROR_SUCCESS == RegEnumValue(	hKey, dwIndex, szValueName,	&dwValueNameSize,	NULL, &dwType,	pValueData,	&dwValueDataSize)) 
+	{
+		if (REG_SZ == dwType) 
+		{
+			DEBUGMSG(dwZone, (TEXT("\t\t%s = %s\r\n"), szValueName, (LPWSTR)pValueData));
+		}
+		else if (REG_DWORD == dwType) 
+		{
+			DEBUGMSG(dwZone, (TEXT("\t\t%s = %08X\r\n"), szValueName, *(PDWORD)pValueData));
+		}
+		else if (REG_MULTI_SZ == dwType) 
+		{
+			PWSTR pValueTemp = (PWSTR)pValueData;
+			DEBUGMSG(dwZone, (TEXT("\t\t%s :\r\n"), szValueName));
+			while (*pValueTemp) 
+			{
+				DEBUGMSG(dwZone, (TEXT("\t\t\t%s\r\n"), (LPWSTR)pValueTemp));
+				pValueTemp += (wcslen(pValueTemp) + 1);
+			}
+		}
+		dwIndex ++;
+		dwValueDataSize = sizeof(pValueData);
+		dwValueNameSize = MAX_PATH;
+	}
+}

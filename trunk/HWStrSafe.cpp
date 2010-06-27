@@ -843,7 +843,21 @@ BOOL	WINAPI StringChrChrA( LPSTR pszString, CHAR chA, CHAR chB)
 	}
 	return TRUE;
 }
-
+#ifndef _MAX_PATH
+#define _MAX_PATH   260 /* max. length of full pathname */
+#endif
+#ifndef _MAX_DRIVE
+#define _MAX_DRIVE  3   /* max. length of drive component */
+#endif
+#ifndef _MAX_DIR
+#define _MAX_DIR    256 /* max. length of path component */
+#endif
+#ifndef _MAX_FNAME
+#define _MAX_FNAME  256 /* max. length of file name component */
+#endif
+#ifndef _MAX_EXT
+#define _MAX_EXT    256 /* max. length of extension component */
+#endif
 void WINAPI StringSplitPathA(const CHAR *pszPath,  CHAR *pszDrive, size_t _DriveSize, CHAR *pszDir, size_t _DirSize,  CHAR *pszFileName, size_t _FilenameSize,  CHAR *pszExt, size_t _ExtSize)
 {
 	const CHAR *tmp = NULL;
