@@ -605,3 +605,52 @@ BOOL WINAPI XUE_DrawTransparent(HDC hDC, int x, int y, HBITMAP	hBitmap, COLORREF
 	return TRUE;
 
 }
+
+BOOL WINAPI StretchBlt( HDC hdcDest, const RECT* pDest, HDC hdcSrc, const RECT* pSrc, DWORD dwRop)
+{	
+	switch(dwRop)
+	{
+	case DSTINVERT:
+		{
+			assert(pDest);
+			if (pDest)
+			{
+				if(pSrc)	
+				{
+					return ::StretchBlt(hdcDest, pDest->left, pDest->top, pDest->right - pDest->left, pDest->bottom - pDest->top, NULL, pSrc->left, pSrc->top, pSrc->right - pSrc->left, pSrc->bottom - pSrc->top, dwRop);
+				}
+				else
+				{
+					return ::StretchBlt(hdcDest, pDest->left, pDest->top, pDest->right - pDest->left, pDest->bottom - pDest->top, NULL, 0, 0, 1, 1, dwRop);
+				}
+			}
+			else
+			{
+				return FALSE;
+			}
+		}
+		break;
+	default:
+		{
+			if (pDest && pSrc)
+			{
+				return ::StretchBlt(hdcDest, pDest->left, pDest->top, pDest->right - pDest->left, pDest->bottom - pDest->top, hdcSrc, pSrc->left, pSrc->top, pSrc->right - pSrc->left, pSrc->bottom - pSrc->top, dwRop);
+			}
+			else
+			{
+				return FALSE;
+			}
+		}
+		break;
+	}	
+	return FALSE;
+}
+
+BOOL WINAPI AlphaBlend( HDC hdcDest, const RECT* pDest, HDC hdcSrc, const RECT* pSrc, BLENDFUNCTION blendFunc)
+{
+	if (!pDest || !pSrc)
+	{
+		return FALSE;
+	}
+	return ::AlphaBlend(hdcDest, pDest->left, pDest->top, pDest->right - pDest->left, pDest->bottom - pDest->top, hdcSrc, pSrc->left, pSrc->top, pSrc->right - pSrc->left, pSrc->bottom - pSrc->top, blendFunc);
+}

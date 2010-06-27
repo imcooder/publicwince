@@ -144,25 +144,19 @@ if (pszMsg)	{	XTrace(pszMsg);	}			\
 						
 #endif
 
-
-#ifndef DEBUGMSG
-#ifdef HWDEBUG
-
-#define DEBUGMSG(cond,printf_exp)   ((void)((cond)?(XTrace printf_exp),1:0))
-
-#else // DEBUG
-
+#ifndef UNDER_CE
+#if defined(DEBUG) || defined(_DEBUG)
+#define DEBUGMSG(cond, printf_exp)	 ((void)((cond)?(XTrace printf_exp),1:0))
+#else
 #define DEBUGMSG(cond,printf_exp) ((void)0)
-
-#endif // DEBUG
-
 #endif
 
-#ifndef RETAILMSG
+#define RETAILMSG(cond,printf_exp)		((cond)?(XTrace printf_exp), 1:0)
 
-#define RETAILMSG(cond,printf_exp)   ((cond)?(XTrace printf_exp), 1:0)
-
+#else
+#include <dbgapi.h>
 #endif
+
 
 
 #ifdef __cplusplus
@@ -182,6 +176,10 @@ extern "C"
 
 	DLLXEXPORT void WINAPI		XUE_AssertPrintW(LPCWSTR, ...);	
 	DLLXEXPORT void WINAPI		XUE_AssertPrintA(LPCSTR, ...);	
+
+	DLLXEXPORT void WINAPI		XUE_TraceError(UINT_PTR nError);
+	DLLXEXPORT void WINAPI		XUE_TraceLastError();
+	DLLXEXPORT void WINAPI		XUE_DumpRegKey(DWORD dwZone,	HKEY);
 #ifdef __cplusplus
 }
 #endif

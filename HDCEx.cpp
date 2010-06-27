@@ -549,11 +549,28 @@ void CXUE_SafeMemDC::Construct( HDC hDestDC, const LPRECT prcPaint)
 				m_hOldBitmap = (HBITMAP)::SelectObject (m_hDC, m_hBitmap);
 				::SetMapMode(m_hDC, ::GetMapMode(m_hDestDC));
 				::SetViewportOrgEx(m_hDC, -m_rtPaint.left, -m_rtPaint.top, NULL);
-				DPtoLP(&m_rtPaint, 2);				
+				DPtoLP(&m_rtPaint, 2);	
+				//////////////////////////////////////////////////////////////////////////
+				RECT rtClipBox = {0, 0, 0, 0};
+				int nErr = GetClipBox(hDestDC, &rtClipBox);
+				if (ERROR != nErr)
+				{	
+					IntersectClipRect(m_hDC, rtClipBox.left, rtClipBox.top, rtClipBox.right, rtClipBox.bottom);
+				}		
+				//////////////////////////////////////////////////////////////////////////
+				HRGN hClipRgn = ::CreateRectRgn(0, 0, 0, 0);
+				if (1 == ::GetClipRgn(m_hDC, hClipRgn))
+				{
+					::SelectClipRgn(m_hDC, hClipRgn);
+				}	
+				if (hClipRgn)
+				{
+					::DeleteObject(hClipRgn);
+					hClipRgn = NULL;
+				}
 			}
 
 #else
-
 			m_hBitmap = ::CreateCompatibleBitmap(m_hDestDC, _abs(m_rtPaint.right - m_rtPaint.left), _abs(m_rtPaint.bottom - m_rtPaint.top));
 			if (m_hBitmap)
 			{
@@ -563,7 +580,7 @@ void CXUE_SafeMemDC::Construct( HDC hDestDC, const LPRECT prcPaint)
 				//////////////////////////////////////////////////////////////////////////
 				RECT rtClipBox = {0, 0, 0, 0};
 				int nErr = GetClipBox(hDestDC, &rtClipBox);
-				if (SIMPLEREGION == nErr || COMPLEXREGION == nErr)
+				if (ERROR != nErr)
 				{	
 					IntersectClipRect(m_hDC, rtClipBox.left, rtClipBox.top, rtClipBox.right, rtClipBox.bottom);
 				}				
